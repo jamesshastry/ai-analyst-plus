@@ -107,22 +107,22 @@ The one-line intro should be specific to what they built. Examples:
 ### Step 4: Confirm Before Posting
 
 Show the student the full message and ask:
-**"Here's your showcase for #topic-ai-analytics. Want me to send it, or change anything?"**
+**"Here's your showcase for #show-and-tell. Want me to send it, or change anything?"**
 
 Do NOT post until they confirm.
 
 ### Step 5: Post to Slack
 
-Post the message to the `#topic-ai-analytics` channel using the Slack MCP.
+Post the message to the `#show-and-tell` channel using the Slack MCP.
 
-Use the channel name `topic-ai-analytics` when calling the Slack MCP send message tool.
+Use the channel name `show-and-tell` when calling the Slack MCP send message tool.
 
 Wrap the ASCII diagram in triple backticks so Slack renders it in monospace.
 
 ### Step 6: Celebrate
 
 After posting, say something like:
-**"Posted! 🎉 Check #topic-ai-analytics to see it live. Keep building — you can `/show-off` again anytime."**
+**"Posted! 🎉 Check #show-and-tell to see it live. Keep building — you can `/show-off` again anytime."**
 
 ## Rules
 1. Always confirm before posting — never auto-send
