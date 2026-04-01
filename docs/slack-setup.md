@@ -1,54 +1,60 @@
-# Slack Setup Guide
+# Connect to the Community
 
-Connect your Slack account so the AI Analyst can post to the AI Analyst Lab community as you.
+Post to the AI Analyst Lab Slack as yourself — not as a bot.
 
-## What You Need
+## Steps
 
-- A Slack account in the **AI Analyst Lab** workspace
-- 2 minutes
+### 1. Open the auth link
 
-## Setup Steps
-
-### 1. Get Your Slack Token
-
-Click this link to authorize the AI Analyst app with your Slack account:
-
-**[Authorize Slack →](https://slack-auth.shane-aea.workers.dev)**
-
-> **Note:** This grants the AI Analyst permission to post messages as you and read channel lists. It does NOT give access to your DMs, private channels, or any other workspace data.
-
-After clicking "Allow", you'll see a page with your token. Copy it.
-
-### 2. Add Token to Your Config
-
-Create a `.env` file in the root of this repo (if it doesn't exist already) and add:
-
-```
-SLACK_TOKEN=xoxp-your-token-here
-```
-
-### 3. Verify It Works
-
-Restart Claude Code, then run:
+Run this in Claude Code:
 
 ```
 /kickoff
 ```
 
-This will introduce you to the community in `#introductions`. If it works, you're all set!
+Claude will open a link in your browser. If it doesn't, go here manually:
+
+**https://slack-auth.shane-aea.workers.dev**
+
+### 2. Click "Allow"
+
+Sign in to Slack if prompted, then click **Allow**. This lets the AI Analyst post messages as you. It cannot read your DMs or private channels.
+
+### 3. Copy your token
+
+After clicking Allow, you'll see a page with your token and a **Copy** button. Click it.
+
+### 4. Paste it into Claude Code
+
+Go back to your terminal. Claude is waiting for you to paste the token. Paste it and hit enter.
+
+### 5. Restart Claude Code
+
+Claude will save your token. You need to restart Claude Code once for Slack to connect:
+
+```
+exit
+claude
+```
+
+### 6. Run /kickoff again
+
+```
+/kickoff
+```
+
+This time Claude will ask your name, role, and what you're excited about, then post your intro to `#introductions`.
+
+## That's it!
+
+Once connected, you can use:
+- `/kickoff` — Introduce yourself to the community
+- `/show-off` — Share what you've built
 
 ## Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
-| "Slack isn't connected" | Make sure `.env` has your `SLACK_TOKEN` and you restarted Claude Code |
-| "Channel not found" | Make sure you've joined `#introductions` in the AI Analyst Lab Slack workspace |
-| Token expired | Re-authorize using the link above |
-
-## What Can It Do?
-
-Once connected, you can use:
-- `/kickoff` — Introduce yourself to the community
-- `/show-off` — Share what you've built with the community
-
-Messages post as **you** (your name, your profile picture) — not as a bot.
+| "Slack isn't connected" | Make sure you restarted Claude Code after pasting your token |
+| "Channel not found" | Join `#introductions` in the AI Analyst Lab Slack workspace |
+| Token expired | Run `/kickoff` again — Claude will walk you through re-authorizing |
