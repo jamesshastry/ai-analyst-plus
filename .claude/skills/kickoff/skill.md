@@ -13,8 +13,19 @@ excited intro message to `#introductions` from the student's own Slack account.
 
 ## Prerequisites
 - Slack MCP server must be configured with the student's user token
-- If Slack MCP tools are not available, tell the student:
-  "Slack isn't connected yet. Follow the setup guide in `docs/slack-setup.md` to connect your Slack account, then try `/kickoff` again."
+- If Slack MCP tools are not available, run the **Slack Connect Flow** below first
+
+## Slack Connect Flow
+
+If the student hasn't connected Slack yet (no `SLACK_TOKEN` in `.env`, or Slack MCP tools aren't available):
+
+1. Tell them: **"First, let's connect your Slack account. I'm opening a link in your browser — sign in to Slack and click Allow."**
+2. Run: `open "https://slack-auth.shane-aea.workers.dev"` to open the OAuth page in their browser
+3. Tell them: **"After you click Allow, you'll see a token on the page. Copy it and paste it here."**
+4. When they paste the token (starts with `xoxp-`):
+   - Write it to `.env` file: `SLACK_TOKEN=xoxp-...`
+   - Tell them: **"Got it! You'll need to restart Claude Code for Slack to connect. Run `claude` again and then `/kickoff`."**
+   - Stop here — they need to restart for the MCP to pick up the new token
 
 ## Instructions
 
@@ -33,7 +44,7 @@ Write a short, natural intro post (2-4 sentences) using their answers. The messa
 - Start with a greeting ("Hey everyone!" / "What's up!" / etc.)
 - Include their name, role, and what they're excited about
 - End with energy — something like "Let's go!" or "Can't wait to get started!"
-- End with a celebration emoji (🚀, 🎉, 💪, 🔥, etc.)
+- End with a celebration emoji
 
 **Example outputs** (for tone reference, don't copy these verbatim):
 - "Hey everyone! I'm Marcus, a data analyst at Shopify. Pumped to learn how to build agents that automate the reporting I spend half my week on. Let's go! 🚀"

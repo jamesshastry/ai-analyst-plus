@@ -13,7 +13,7 @@ Connect your Slack account so the AI Analyst can post to the AI Analyst Lab comm
 
 Click this link to authorize the AI Analyst app with your Slack account:
 
-**[Authorize Slack →](https://slack.com/oauth/v2/authorize?client_id=YOUR_CLIENT_ID&user_scope=chat:write,channels:read,users:read)**
+**[Authorize Slack →](https://slack-auth.shane-aea.workers.dev)**
 
 > **Note:** This grants the AI Analyst permission to post messages as you and read channel lists. It does NOT give access to your DMs, private channels, or any other workspace data.
 
