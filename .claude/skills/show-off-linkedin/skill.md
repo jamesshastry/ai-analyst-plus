@@ -155,86 +155,38 @@ cp showcase.png ~/Desktop/showcase.png
 If the render script fails (missing Node.js, Chromium issues), fall back to
 opening the HTML in the browser and telling the student to screenshot manually.
 
-### Step 5: Draft the LinkedIn Post
+### Step 5: Draft the LinkedIn Caption
 
-This is NOT a description. It's a LinkedIn post designed to stop the scroll,
-tell a story, and drive engagement. Follow this structure:
+Write a short caption — **4-6 lines max, under 200 characters total.** This
+must fit in a LinkedIn URL parameter, so brevity is non-negotiable.
 
-#### Structure
-
-1. **Hook (line 1-2):** The surprising, specific, concrete thing. Lead with
-   the RESULT, not "I went to a bootcamp." This is what makes people stop
-   scrolling. Short. Punchy. Something that makes someone think "wait, what?"
-
-2. **The story (3-5 lines):** What they built, with specific details. What
-   question they asked. What it came back with. How fast it was. Make the
-   reader feel the moment.
-
-3. **The twist (1-2 lines):** The part that makes it relatable and surprising.
-   Their background, the contrast, the "I can't believe this is possible" beat.
-   This is the most shareable part.
-
-4. **CTA (last line):** Drive engagement. "Want to learn how to build this?
-   Comment below." or "Drop a comment if you want to see how it works." This
-   turns views into comments which drives LinkedIn's algorithm.
+The image IS the post. The caption just sets up what they're looking at and
+invites engagement. Think of it like a text message about something cool you
+built, not a LinkedIn thought piece.
 
 #### Rules
 
-- First line must work on its own — it's the only thing people see before "...see more"
-- No hashtags. No emojis. No "Day 1/30" formatting. No "I'm thrilled to announce"
-- Write in their voice — casual, real, like they're texting a friend about something cool
-- Include at least one specific number (18 charts, 3 agents, 4 hours, 50K rows)
-- Mention **AI Analyst Lab** naturally — not as an ad, but as where it happened
-- End with a question or CTA that invites comments
+- **Lead with what they built, not where they were.** "Built an analysis
+  pipeline that does X" not "Just attended the AI Analyst Lab bootcamp"
+- **One specific number.** 18 charts, 3 agents, 50K rows — pick the most
+  impressive one
+- **No hashtags. No emojis. No "I'm thrilled to announce."**
+- **End with a short engagement hook.** "Want to see how?" or "Comment if
+  you want the details" — one line, casual
+- **Write like a text message.** If it sounds like a LinkedIn influencer
+  wrote it, rewrite it. If it sounds like AI wrote it, rewrite it harder.
+- **Mention AI Analyst Lab naturally** — as context, not a pitch
 
-#### Example posts (for pattern, don't copy verbatim):
+#### Example captions (for tone, adapt to what they actually built):
 
-```
-I asked one question. My AI analyst came back with 18 charts and a full
-experiment design.
+- "Built an analysis pipeline today that takes a business question and comes
+  back with charts + experiment designs. Want to see how it works?"
 
-Built this today at the AI Analyst Lab bootcamp. Typed "should we redesign
-mobile checkout?" and watched three AI agents coordinate — one queried the
-data, one ran the stats, one made the visualizations.
+- "3 AI agents, 18 charts, zero Python written by me. Built this in a day.
+  Comment if you want the details."
 
-Power analysis. Sample size calculations. Publication-ready charts. All of it.
-
-I'm a PM. I've never written a line of Python.
-
-Want to learn how to build this? Comment below.
-```
-
-```
-4 hours ago I didn't know what an "agentic pipeline" was.
-
-Now I have one that takes any business question, queries real data with
-DuckDB, runs statistical analysis, and outputs organized charts and reports.
-
-Built it at the AI Analyst Lab bootcamp with Claude Code. I designed the
-architecture. Claude wrote the code. We went back and forth like pair
-programming with someone who never gets tired.
-
-The craziest part? The whole thing runs again on any new question. It's
-not a one-off analysis — it's a system.
-
-Want to see how it works? Drop a comment.
-```
-
-```
-This AI analyst found a pattern my team missed for 6 months.
-
-Weekend mobile checkout drop-off. It was right there in the data. We just
-never cut it that way.
-
-Today at the AI Analyst Lab bootcamp I built a pipeline that asks a question,
-queries 50K rows of transaction data, and comes back with root cause analysis
-+ experiment designs. Took 3 agents and about 4 hours to build.
-
-Already sent the findings to my team. On a Saturday.
-
-Learning how to build AI tools that actually do your job > learning how to
-write prompts. If you want to know more, comment and I'll share what I learned.
-```
+- "Asked my AI analyst one question. Got back a full experiment design with
+  power analysis. This is what I built today."
 
 ### Step 6: Confirm Before Posting
 
@@ -247,42 +199,27 @@ so you can post it, or change anything first?"**
 
 Do NOT proceed until they confirm.
 
-### Step 7: Open LinkedIn with Caption Pre-filled + Image on Clipboard
+### Step 7: Post to LinkedIn
 
-Two things happen simultaneously:
-
-1. **Caption goes in the URL** — LinkedIn's `shareActive` parameter pre-fills the compose box
-2. **Image goes on the clipboard** — macOS `osascript` copies the PNG so the student can Cmd+V
+The caption goes in the URL (auto-fills the compose box). The image goes on
+the clipboard (student pastes once). One paste, one click.
 
 ```bash
-python3 -c "
-import urllib.parse, subprocess, webbrowser, os
+# Put the image on the clipboard
+osascript -e 'set the clipboard to (read (POSIX file "PNG_ABSOLUTE_PATH") as «class PNGf»)'
 
-caption = '''CAPTION_TEXT_HERE'''
-
-# Copy the PNG to clipboard (macOS)
-png_path = os.path.abspath('showcase.png')
-subprocess.run(['osascript', '-e', 'set the clipboard to (read (POSIX file \"' + png_path + '\") as «class PNGf»)'])
-
-# Open LinkedIn with caption pre-filled
-url = 'https://www.linkedin.com/feed/?shareActive=true&text=' + urllib.parse.quote(caption)
-webbrowser.open(url)
-"
+# Open LinkedIn with caption pre-filled via URL parameter
+# IMPORTANT: URL-encode the caption text. It MUST be under 200 chars or it gets truncated.
+open "https://www.linkedin.com/feed/?shareActive=true&text=URL_ENCODED_CAPTION"
 ```
 
-LinkedIn opens with the compose box active and the caption already typed in.
-The showcase PNG is on the clipboard ready to paste.
+Tell the student:
 
-Then tell the student:
+**"LinkedIn is open with your caption. Cmd+V to paste your image, then hit Post!"**
 
-**"LinkedIn is open with your caption already filled in and your image
-copied to your clipboard. Just hit Cmd+V to paste the image, then Post!"**
-
-One paste, one click.
-
-**Fallback:** If pasting the image doesn't work in LinkedIn's composer (some
-browsers handle clipboard images differently), tell the student to click the
-image icon in the composer and select `showcase.png` from their project folder.
+**Fallback:** If pasting the image doesn't work in LinkedIn's composer, tell
+the student: "Click the image icon in the composer and select `showcase.png`
+from your Desktop."
 
 ### Step 8: Clean up
 
