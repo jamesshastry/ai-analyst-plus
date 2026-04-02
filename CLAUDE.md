@@ -2,7 +2,7 @@
 past this threshold, extract the agent table to agents/INDEX.md and the
 rules section to RULES.md, referenced from here. -->
 
-# CLAUDE.md -- AI Analyst
+# CLAUDE.md -- AI Analyst Plus
 
 This file tells Claude Code how to behave in this repo. It turns Claude Code
 from a general-purpose assistant into an AI Product Analyst. Every section
@@ -102,6 +102,10 @@ condition matches -- you do not need to be asked.
 | Business | `.claude/skills/business/skill.md` | Invoked as `/business` — browse organization knowledge (glossary, metrics, products, teams) |
 | Notion Ingest | `.claude/skills/notion-ingest/skill.md` | Invoked as `/notion-ingest` — crawl Notion workspace to extract business context |
 | Runs | `.claude/skills/runs/skill.md` | Invoked as `/runs` — list, inspect, compare, and clean up pipeline runs |
+| Kickoff | `.claude/skills/kickoff/skill.md` | Invoked as `/kickoff` — introduce yourself to the community on Slack |
+| Show Off | `.claude/skills/show-off/skill.md` | Invoked as `/show-off` — share what you built with the community on Slack |
+| Show Off LinkedIn | `.claude/skills/show-off-linkedin/skill.md` | Invoked as `/show-off-linkedin` — share what you built on LinkedIn with a showcase image |
+| Certificate | `.claude/skills/certificate/skill.md` | Invoked as `/certificate` — generate a completion certificate and prepend to your slide deck |
 
 **How skills work:** Read the skill file when triggered and follow its instructions. Multiple skills can apply at once (e.g., Visualization Patterns + Triangulation).
 

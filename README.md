@@ -1,15 +1,14 @@
-# AI Analyst v2
+# AI Analyst Plus
+
+> **Private** — AI Analyst Lab bootcamp and consulting use only.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Claude Code Required](https://img.shields.io/badge/requires-Claude%20Code-blueviolet.svg)](https://claude.ai/code)
 [![Tests](https://img.shields.io/badge/tests-606%20passing-brightgreen.svg)](#)
 
-A complete AI analyst system powered by Claude Code. You ask a business question. Claude frames it, explores your data, finds the root cause, builds a story, and hands you a branded slide deck with speaker notes. The whole thing takes minutes, not days.
+The full AI analyst system for Day 2 of the bootcamp. Everything from the starter repo, plus 18 agents, 42 skills, 38 helpers, a DAG pipeline engine, Slack community integration, and a certificate generator.
 
-**Bring your own data.** No bundled datasets to configure — connect your CSVs, DuckDB, or warehouse with `/connect-data` and start analyzing immediately.
-
-**18** specialized agents | **39** auto-applied skills | **20** slash commands | DAG-based parallel execution | PDF + HTML export
+**18** specialized agents | **42** skills | **20** slash commands | DAG-based parallel execution | PDF + HTML export
 
 ---
 
@@ -47,41 +46,48 @@ Claude will tell you the exact command. You don't need to memorize anything in t
 
 ---
 
-## Quick Start
+## Quick Start (Bootcamp Day 2)
 
-**1. Install Claude Code** (requires a [Claude Pro subscription](https://claude.ai/pro))
+You're upgrading from ai-analyst-starter. Your Day 1 skills and agents carry over — this repo adds the full pipeline on top.
 
-```bash
-npm install -g @anthropic-ai/claude-code
-```
-
-**2. Clone and set up**
+**1. Clone and set up**
 
 ```bash
-git clone https://github.com/ai-analyst-lab/ai-analyst.git
-cd ai-analyst
+git clone https://github.com/ai-analyst-lab/ai-analyst-plus.git
+cd ai-analyst-plus
 pip install -e ".[dev]"
 ```
 
-**3. Start Claude Code**
+**2. Generate data** (if you haven't already)
+
+```bash
+pip install -r data-generation/requirements.txt
+python data-generation/generate.py
+```
+
+**3. Connect Slack** (for community features)
+
+Copy `.mcp.json` to your project root (already included), then add your Slack token to `.env`:
+
+```bash
+echo "SLACK_TOKEN=xoxp-your-token-here" >> .env
+```
+
+Don't have a token? Run `/kickoff` and follow the Slack Connect Flow.
+
+**4. Start Claude Code**
 
 ```bash
 claude
 ```
 
-**4. Connect your data and go**
+**5. Try the full pipeline**
 
 ```
-/connect-data
+/run-pipeline question="Why is conversion dropping on mobile?"
 ```
 
-Or skip the wizard and just ask a question with your data in a directory:
-
-```
-/run-pipeline data_path=data/my_csvs/ question="Why is conversion dropping?"
-```
-
-For full setup details: [docs/setup-guide.md](docs/setup-guide.md)
+Or try community features: `/kickoff`, `/show-off`, `/certificate`
 
 ---
 
@@ -554,10 +560,5 @@ Python modules in `helpers/` that agents call during execution:
 
 - **Setup guide:** [docs/setup-guide.md](docs/setup-guide.md)
 - **Theming:** [docs/theming.md](docs/theming.md)
-- **Questions or bugs:** Open a [GitHub Issue](https://github.com/ai-analyst-lab/ai-analyst/issues)
-
----
-
-## License
-
-[MIT](LICENSE) -- use it however you want.
+- **Questions or bugs:** Ask in the `#help` channel on Slack
+- **Open-source version:** [github.com/ai-analyst-lab/ai-analyst](https://github.com/ai-analyst-lab/ai-analyst)
