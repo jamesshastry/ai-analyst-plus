@@ -155,33 +155,86 @@ cp showcase.png ~/Desktop/showcase.png
 If the render script fails (missing Node.js, Chromium issues), fall back to
 opening the HTML in the browser and telling the student to screenshot manually.
 
-### Step 5: Draft the LinkedIn Caption
+### Step 5: Draft the LinkedIn Post
 
-Write a short LinkedIn post (3-5 sentences, first person) that:
-- Opens with what they built today — specific, not vague
-- Mentions it was at the **AI Analyst Lab** bootcamp
-- Names concrete details (number of agents, what data they analyzed, what they found)
-- Conveys genuine excitement without being cringe
-- Ends with a takeaway or reflection
-- Does NOT use hashtags, emojis, or "day 1/30" style formatting
+This is NOT a description. It's a LinkedIn post designed to stop the scroll,
+tell a story, and drive engagement. Follow this structure:
 
-**Example captions** (for tone, don't copy):
+#### Structure
 
-> Built an AI-powered analysis engine today at the AI Analyst Lab bootcamp.
-> It takes a business question, queries real data with DuckDB, runs power
-> analysis with scipy, and outputs 18 production-quality charts. The whole
-> thing is orchestrated by Claude Code — I wrote the architecture, Claude
-> wrote the code. Took about 4 hours.
+1. **Hook (line 1-2):** The surprising, specific, concrete thing. Lead with
+   the RESULT, not "I went to a bootcamp." This is what makes people stop
+   scrolling. Short. Punchy. Something that makes someone think "wait, what?"
 
-> Spent the day at AI Analyst Lab building a checkout funnel analyzer.
-> Asked it "should we redesign mobile checkout?" and it came back with a
-> full experiment design, sample size calculations, and 14 visualizations.
-> I'm a PM. I've never written a line of Python. This is wild.
+2. **The story (3-5 lines):** What they built, with specific details. What
+   question they asked. What it came back with. How fast it was. Make the
+   reader feel the moment.
 
-> Just built my first agentic analysis pipeline. Three AI agents that
-> coordinate to go from question to insight to report — with actual
-> statistical rigor, not just vibes. Built at the AI Analyst Lab bootcamp
-> with Claude Code. Already thinking about how to use this at work.
+3. **The twist (1-2 lines):** The part that makes it relatable and surprising.
+   Their background, the contrast, the "I can't believe this is possible" beat.
+   This is the most shareable part.
+
+4. **CTA (last line):** Drive engagement. "Want to learn how to build this?
+   Comment below." or "Drop a comment if you want to see how it works." This
+   turns views into comments which drives LinkedIn's algorithm.
+
+#### Rules
+
+- First line must work on its own — it's the only thing people see before "...see more"
+- No hashtags. No emojis. No "Day 1/30" formatting. No "I'm thrilled to announce"
+- Write in their voice — casual, real, like they're texting a friend about something cool
+- Include at least one specific number (18 charts, 3 agents, 4 hours, 50K rows)
+- Mention **AI Analyst Lab** naturally — not as an ad, but as where it happened
+- End with a question or CTA that invites comments
+
+#### Example posts (for pattern, don't copy verbatim):
+
+```
+I asked one question. My AI analyst came back with 18 charts and a full
+experiment design.
+
+Built this today at the AI Analyst Lab bootcamp. Typed "should we redesign
+mobile checkout?" and watched three AI agents coordinate — one queried the
+data, one ran the stats, one made the visualizations.
+
+Power analysis. Sample size calculations. Publication-ready charts. All of it.
+
+I'm a PM. I've never written a line of Python.
+
+Want to learn how to build this? Comment below.
+```
+
+```
+4 hours ago I didn't know what an "agentic pipeline" was.
+
+Now I have one that takes any business question, queries real data with
+DuckDB, runs statistical analysis, and outputs organized charts and reports.
+
+Built it at the AI Analyst Lab bootcamp with Claude Code. I designed the
+architecture. Claude wrote the code. We went back and forth like pair
+programming with someone who never gets tired.
+
+The craziest part? The whole thing runs again on any new question. It's
+not a one-off analysis — it's a system.
+
+Want to see how it works? Drop a comment.
+```
+
+```
+This AI analyst found a pattern my team missed for 6 months.
+
+Weekend mobile checkout drop-off. It was right there in the data. We just
+never cut it that way.
+
+Today at the AI Analyst Lab bootcamp I built a pipeline that asks a question,
+queries 50K rows of transaction data, and comes back with root cause analysis
++ experiment designs. Took 3 agents and about 4 hours to build.
+
+Already sent the findings to my team. On a Saturday.
+
+Learning how to build AI tools that actually do your job > learning how to
+write prompts. If you want to know more, comment and I'll share what I learned.
+```
 
 ### Step 6: Confirm Before Posting
 
