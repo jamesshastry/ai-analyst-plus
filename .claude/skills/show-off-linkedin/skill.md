@@ -78,6 +78,8 @@ in the `<div class="content">` section for this specific user's build.
 - `.slide` — 1080x1080 container (always use this)
 - `.top-bar`, `.grid-bg`, `.glow`, `.brand` — background effects (always include)
 - `.content` — padded flex column for all content
+- `.flow-section` — **IMPORTANT**: wrap the core flow (engine → branch → outputs → converge → arrow) in this. It uses `flex: 1` + `justify-content: center` to fill the middle of the slide evenly and prevent dead space at the bottom.
+- `.bottom-section` — wrap file-tree + stats in this. Uses `margin-top: auto` to anchor at the bottom.
 - `.section-divider` — subtle gradient line between sections
 - `.flow-arrow` — centered `▼` between sections
 
@@ -130,7 +132,7 @@ in the `<div class="content">` section for this specific user's build.
 3. **The engine block is the hero.** If they built a core system, give it the `.engine-block` treatment.
 4. **Use color to distinguish component types.** Don't make everything amber — use purple for agents, green for helpers, cyan for data.
 5. **Include real details.** Don't just say "charts" — list what charts. Don't just say "agent" — say what it does.
-6. **Keep it tight but breathable.** Everything must fit in 1080x1080 without scrolling. But don't cram — whitespace makes it professional.
+6. **Fill the full 1080x1080 — no dead space.** Use `.flow-section` around the core flow and `.bottom-section` around file-tree + stats. This distributes content evenly so there's no blank gap at the bottom. People view these on phones — make text readable.
 7. **Count things for the stats row.** Agents, charts, tests, lines of code — concrete numbers make it impressive.
 
 ### Step 4: Render to PNG
