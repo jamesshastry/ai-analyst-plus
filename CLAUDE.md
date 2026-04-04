@@ -86,6 +86,7 @@ condition matches -- you do not need to be asked.
 | Explore | `.claude/skills/explore/skill.md` | Invoked as `/explore` — quick interactive data exploration without full pipeline |
 | Export | `.claude/skills/export/skill.md` | Invoked as `/export {format}` — export results as slides, email, slack, brief, data, gdoc (Google Doc with charts + SQL), or docx (local Word file) |
 | Connect Data | `.claude/skills/connect-data/skill.md` | Invoked as `/connect-data` — add a new dataset connection |
+| Setup Snowflake | `.claude/skills/setup-snowflake/skill.md` | Invoked as `/setup-snowflake` — guided Snowflake credential setup, MCP connection test, and data exploration |
 | Metrics | `.claude/skills/metrics/skill.md` | Invoked as `/metrics` — view and manage metric dictionary entries |
 | Compare Datasets | `.claude/skills/compare-datasets/skill.md` | Comparing metrics or patterns across two datasets |
 | Forecast | `.claude/skills/forecast/skill.md` | Producing a time-series forecast or projection |
@@ -336,6 +337,13 @@ These are non-negotiable. They protect analytical quality.
 14. **Capture feedback as learnings.** When a user corrects your work or provides methodology guidance, automatically capture it to the learnings system. Use the Feedback Capture skill on every correction or "you should have..." statement.
 
 15. **Check corrections before writing SQL.** Before generating SQL for any analysis, check `.knowledge/corrections/index.yaml` for logged corrections matching the current dataset and table. Apply known fixes proactively — never repeat the same SQL mistake twice.
+
+16. **Never expose credentials in terminal output.** Never display passwords,
+    tokens, or secrets. Never pass credentials as command-line arguments (visible
+    in process list via `ps`). Store all credentials in `.env` using the
+    Write/Edit tool, never via echo/cat in bash. `.env` is gitignored — never
+    commit it. When testing connections, source credentials from environment
+    variables, never inline.
 
 ---
 

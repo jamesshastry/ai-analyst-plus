@@ -99,7 +99,7 @@ The builder automatically applies:
 **Requirements:**
 - Check `helpers/INDEX.md` first to verify no helper exists for your use case
 - If building from scratch, create the .docx with proper heading hierarchy
-- Always save to `/Users/shanebutler/projects/ai-analyst-plus/outputs/` directory
+- Always save to the repo's `outputs/` directory
 - Use descriptive filename with date suffix: `report_[title]_[YYYYMMDD].docx`
 
 **Example:**
@@ -115,7 +115,7 @@ title = doc.add_heading('Document Title', level=1)
 # Add charts
 doc.add_picture('/path/to/chart.png', width=Inches(6))
 # Save
-doc.save('/Users/shanebutler/projects/ai-analyst-plus/outputs/report_title_20260404.docx')
+doc.save('outputs/report_title_20260404.docx')
 ```
 
 ### Step 2: Upload with Conversion

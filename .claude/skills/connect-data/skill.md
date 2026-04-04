@@ -49,11 +49,19 @@ Present options:
 - Ask: "Database name and schema?"
 - Note: "MotherDuck connects via MCP. Make sure your token is configured."
 
-**For PostgreSQL / BigQuery / Snowflake:**
+**For PostgreSQL / BigQuery:**
 - Copy the appropriate template from `connection_templates/`
 - Ask user to fill in required fields
 - **IMPORTANT:** Never ask for or store passwords directly. Guide the user
   to use environment variables (e.g., `$PG_PASSWORD`).
+
+**For Snowflake:**
+- Route to the dedicated setup wizard: "Run `/setup-snowflake` for guided
+  Snowflake setup — it'll configure your credentials, test the MCP connection,
+  and explore your data."
+- If `.env` already has `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, and
+  `SNOWFLAKE_PASSWORD`, skip the wizard and use the Snowflake MCP
+  `run_snowflake_query` tool directly for testing and schema profiling.
 
 ### Step 3: Create Dataset Brain
 1. **Generate a dataset_id from the display name** using lowercase letters with hyphens (NOT underscores).
