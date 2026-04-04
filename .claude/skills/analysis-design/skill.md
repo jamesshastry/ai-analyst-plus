@@ -1,3 +1,9 @@
+---
+name: analysis-design
+description: |
+  Takes a vague analytical hunch, stakeholder request, or business question and produces a rigorous, stakeholder-ready analysis plan through a multi-stage pipeline. Use this skill whenever someone says "I think X caused Y", "help me investigate...", "design an analysis for...", "can you look into why...", "we need to figure out what's driving...", or presents any analytical question that needs methodological rigor before execution. This skill is essential when a PM has a hunch but no plan, when an analysis needs redesign after stakeholder feedback, or before starting any major investigation to prevent wasted work. The skill orchestrates hypothesis sharpening → confound scanning → investigation planning → V1 execution → feedback synthesis → V2 redesign. Apply this whenever the user is moving from vague intuition to structured investigation, when they're about to dive into data without a clear plan, when they need to validate an analytical approach before running queries, or when they're iterating on findings after stakeholder review. Key phrases that should trigger this: "analyze why", "investigate", "figure out what caused", "design an experiment", "help me understand", "look into", "what's driving", "V2 after feedback", "stakeholder comments", "redesign the analysis".
+---
+
 # Skill: Analysis Design
 
 **Trigger:** `/analysis-design`, "design an analysis for...", "I think X caused Y", "help me investigate..."
@@ -35,9 +41,32 @@ This skill orchestrates the full lifecycle: **hunch → testable hypothesis → 
 
 ---
 
-## Architecture Preview
+## CRITICAL: First Action - Show Architecture Preview
 
-**Before running any stage**, output this architecture preview so the user sees the plan:
+**BEFORE doing ANYTHING else, output the architecture preview.** This is the very first thing you do when this skill is invoked. Do not read agent files, do not start Stage 1, do not process inputs — show the preview first.
+
+### Preview Format
+
+**If {{V1_FINDINGS}} or {{FEEDBACK}} is provided (V2 redesign scenario):**
+
+```
+ANALYSIS DESIGN PIPELINE — V2 REDESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+V1 analysis + feedback detected.
+
+Skipping Stages 1-3 (Hypothesis Sharpener, Confound Scanner, Investigation Plan).
+Jumping directly to Stage 4: Feedback Synthesizer.
+
+This stage will:
+- Extract and categorize each piece of feedback
+- Assess what V1 got right, wrong, and missed
+- Design V2 investigation plan addressing all stakeholder concerns
+- Map each feedback item to specific V2 analysis steps
+
+Starting Stage 4...
+```
+
+**Otherwise (fresh analysis scenario):**
 
 ```
 ANALYSIS DESIGN PIPELINE
@@ -50,6 +79,16 @@ I'll investigate this in 3 stages:
 Starting Stage 1...
 ```
 
+**If {{URGENCY}} is detected, add:**
+
+```
+⏰ URGENCY DETECTED: {{URGENCY}}
+Applying timeline compression:
+- Prioritizing core investigation steps
+- Flagging optional deep-dives that may be skipped
+- Setting explicit scope boundaries
+```
+
 ---
 
 ## Pipeline Flow
@@ -57,7 +96,7 @@ Starting Stage 1...
 ```
 /analysis-design "{{HUNCH}}"
        │
-       ├─ Output Architecture Preview (above)
+       ├─ FIRST: Output Architecture Preview (see above)
        │
        ├─ Does the user have V1 + feedback?
        │   YES → Skip to Stage 4 (Feedback Synthesizer)
@@ -76,8 +115,12 @@ Starting Stage 1...
   └──────────────┬──────────────────────┘
                  │
                  ├─ ⏸ CHECKPOINT: Present Stage 1 summary.
-                 │   STOP and wait for user to say
-                 │   "continue" before proceeding.
+                 │   Output: "⏸ STAGE 1 COMPLETE
+                 │   Review the hypothesis above.
+                 │   Reply 'continue' to proceed to Stage 2,
+                 │   or provide corrections."
+                 │   STOP HERE. WAIT for user response.
+                 │   Do NOT proceed to Stage 2 automatically.
                  │
                  ▼
   ┌─────────────────────────────────────┐
@@ -93,8 +136,12 @@ Starting Stage 1...
   └──────────────┬──────────────────────┘
                  │
                  ├─ ⏸ CHECKPOINT: Present Stage 2 summary.
-                 │   STOP and wait for user to say
-                 │   "continue" before proceeding.
+                 │   Output: "⏸ STAGE 2 COMPLETE
+                 │   Review the confounds above.
+                 │   Reply 'continue' to proceed to Stage 3,
+                 │   or provide corrections."
+                 │   STOP HERE. WAIT for user response.
+                 │   Do NOT proceed to Stage 3 automatically.
                  │
                  ▼
   ┌─────────────────────────────────────┐

@@ -1,3 +1,15 @@
+---
+name: srm-check
+description: |
+  Automatically detect Sample Ratio Mismatch (SRM) in experiment or A/B test data before any analysis proceeds. SRM is a critical randomization integrity check — if the treatment/control split deviates significantly from the expected ratio, the experiment is compromised and results cannot be trusted. This skill acts as a safety gate that blocks analysis when randomization is broken.
+
+  Use this skill whenever you detect experiment or A/B test data — look for columns like "variant", "group", "treatment", "control", "arm", "experiment_group", "test_group", "bucket", "condition", or any column with binary/small-cardinality values that suggest treatment assignment. Auto-fire on experiment data detection without waiting to be asked.
+
+  Apply this skill when loading any experiment dataset, before calculating treatment effects, when starting any experiment analysis workflow, when users mention "A/B test", "experiment", "treatment vs control", "randomization", "test group", or when you see data that looks like it came from an experiment. Even if the user just says "analyze this experiment data" or "compare control and treatment", you MUST run the SRM check first before proceeding with any outcome analysis. SRM must pass before you can trust any treatment effect calculations.
+
+  This is a blocking check — if SRM fails with p ≤ 0.01, HALT all analysis and report the issue. Never skip this check, even if the split looks close enough visually. A 51/49 split on 100K users is statistically significant SRM that invalidates the experiment.
+---
+
 # Skill: SRM Check (Sample Ratio Mismatch)
 
 ## Purpose
@@ -33,10 +45,12 @@ Decision:        PASS (proceed) or BLOCK (halt analysis)
 #### Step 1: Identify the experiment column
 
 Scan the dataset for columns that indicate experiment assignment. Look for:
-- Column names: `variant`, `group`, `treatment`, `control`, `arm`, `experiment_group`, `test_group`, `bucket`, `condition`
-- Column values: binary (0/1, control/treatment, A/B), or small number of distinct values (< 10)
+- **Column names:** `variant`, `group`, `treatment`, `control`, `arm`, `experiment_group`, `test_group`, `bucket`, `condition`
+- **Column values:** binary (0/1, control/treatment, A/B), or small number of distinct values (< 10)
+- **User language:** phrases like "A/B test", "experiment", "treatment vs control", "randomization"
+- **Metadata:** check for experiment config files in `.knowledge/experiments/`
 
-If no experiment column is found, this skill does not apply — exit silently.
+**If NO experiment indicators are found:** This skill does not apply. **Do not generate any SRM-related output.** Do not explain why the check doesn't apply, do not document the detection logic, do not mention SRM at all. Simply proceed with the user's request as if the SRM Check skill was never loaded. The user is asking for segmentation or comparison analysis, not experiment validation — give them what they asked for without SRM commentary.
 
 #### Step 2: Determine expected ratio
 
@@ -72,6 +86,28 @@ Alternatively, use `helpers/stats_helpers.py` if a chi-squared helper is availab
 | p > 0.05 | **PASS** | Randomization looks clean. Proceed with analysis. |
 | 0.01 < p ≤ 0.05 | **WARNING** | Marginal SRM. Proceed with caution. Flag in report. |
 | p ≤ 0.01 | **BLOCK** | SRM detected. HALT analysis. Investigate before proceeding. |
+
+#### Step 5: Temporal stability check (if applicable)
+
+**If the experiment ran for multiple days/weeks, check SRM over time:**
+
+1. **Group data by time period** (day, week, or other natural breakpoint based on experiment duration)
+2. **Run SRM check for each period** using the same chi-squared test
+3. **Flag any period where p ≤ 0.05** (indicates intermittent SRM)
+
+**Why this matters:** SRM can start mid-experiment due to bugs, infrastructure changes, or experiment modifications. A clean aggregate SRM might mask periods where randomization was broken.
+
+**Output format:**
+```markdown
+### SRM Over Time
+
+| Period | Expected | Observed | Chi-squared | p-value | Verdict |
+|--------|----------|----------|-------------|---------|---------|
+| Week 1 | 50/50 | 5,012/4,988 | 0.058 | 0.81 | PASS |
+| Week 2 | 50/50 | 5,300/4,700 | 36.0 | <0.001 | BLOCK |
+```
+
+If any period shows WARNING or BLOCK, investigate before trusting the aggregate result.
 
 ### When SRM is Detected (BLOCK)
 
@@ -128,5 +164,6 @@ If BLOCK: halt and report as described above.
 1. **Never skip the SRM check** — even if the split "looks close enough," run the statistical test. A 51/49 split on 100K users is a significant SRM.
 2. **Never proceed with analysis after a BLOCK** unless the user explicitly overrides — invalid randomization means invalid results
 3. **Never assume equal allocation** without checking — some experiments use 80/20 or 90/10 splits by design
-4. **Never check SRM only once** — if the data spans multiple weeks, check SRM per-week to detect if the issue started at a specific point
+4. **Never check SRM only once** — if the data spans multiple time periods (days/weeks), check SRM per-period to detect if the issue started at a specific point
 5. **Never dismiss SRM as "close enough"** — SRM is binary. Either randomization worked or it didn't. There is no "close enough" for randomization integrity.
+6. **Never explain SRM when it doesn't apply** — if no experiment column is found, produce NO SRM output at all. Exit truly silently without documentation or explanation.

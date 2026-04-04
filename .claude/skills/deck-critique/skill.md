@@ -1,3 +1,8 @@
+---
+name: deck-critique
+description: Score any presentation slide-by-slide against the Data Story Checklist (SO-WHAT, STAKES, EVIDENCE, ASK) and return a diagnosis with per-slide scorecards, anti-pattern flags, an overall grade (A-F), and a prioritized prescription for fixes. Use this skill whenever the user asks to review, critique, diagnose, evaluate, or assess a deck or presentation. Trigger on phrases like "review my deck", "what's wrong with these slides", "critique this presentation", "score my slides", "evaluate this deck", "is my presentation any good", "deck feedback", "slide review", "presentation review", "check my slides", "deck diagnosis", or when the user provides a Marp .marp.md file path or Google Slides URL/ID for evaluation. Also auto-fire before running /deck-rescue since the critique is a prerequisite input for the full rescue pipeline. Apply this skill proactively whenever you see deck-related work — if someone mentions slides, presentations, or asks for feedback on their work, this is the right tool to help them improve it.
+---
+
 # Skill: Deck Critique
 
 ## Purpose
@@ -56,31 +61,66 @@ Every slide is scored on 4 dimensions, each 0-3 points (max 12 per slide):
 
 ### Diagnosis Process
 
+**CRITICAL:** The 4-dimension scoring framework (SO-WHAT, STAKES, EVIDENCE, ASK) is MANDATORY for every slide. Do NOT substitute with pass/fail checkboxes, emoji ratings, or percentage scores. Users rely on the 0-3 scale to compare decks and track improvements over time.
+
 #### Step 1: Parse the deck
 
-**For Marp files:**
-Use `helpers/deck_parser.py` → `parse_marp(path)` to split the deck into slide objects. Each slide object contains: index, title, body_text, bullets, bullet_count, has_chart, has_data_table, word_count, slide_class.
+**For Marp files (.marp.md):**
+Read the file directly and manually parse slide structure. Slides are separated by `---` dividers. For each slide, extract:
+- **Title**: First heading after `---` (usually `# Title`)
+- **Body text**: All content after the title
+- **Bullets**: Lines starting with `-` or `*`
+- **Bullet count**: Number of bullet points
+- **Has chart**: Look for `![...](...)` image syntax or references to chart files
+- **Has table**: Look for markdown table syntax (`|---|---|`)
+- **Word count**: Approximate content length
+- **Slide class**: Check for `::: class-name` or `<!-- class: name -->` syntax
+
+If `helpers/deck_parser.py` exists, you may use `parse_marp(path)` instead, but manual parsing is the fallback.
 
 **For Google Slides:**
-Use `helpers/deck_parser.py` → `parse_google_slides(presentation_id)` with the Google Workspace MCP to extract slide content.
+If `helpers/deck_parser.py` exists, use `parse_google_slides(presentation_id)` with the Google Workspace MCP to extract slide content. Otherwise, inform the user that Google Slides critique requires the deck parser helper.
+
+**Handling missing images:**
+If a deck references chart images that don't exist (e.g., `![chart](charts/funnel.png)` but the file is missing), treat the slide as having `has_chart: true` based on the reference. Note in the critique that the chart file is missing but score based on the intent (a chart was planned for this slide).
 
 #### Step 2: Score each slide
 
-For every slide, assign scores on all 4 dimensions. Write the reasoning for each score — not just the number.
+For every slide, assign scores on all 4 dimensions using the 0-3 scale defined above. This is NON-NEGOTIABLE — even if the user's request seems informal, always apply the standardized framework.
+
+**Always write detailed reasoning for each score** — not just the number. The reasoning must explain:
+- WHY this score was assigned (which criteria from the rubric it meets/fails)
+- WHAT would make it better (specific improvement with an example)
+- HOW this connects to the overall deck story
+
+Reasoning should be 2-4 sentences per dimension, not just a phrase. Compare these:
+
+❌ BAD: "SO-WHAT | 1/3 | Label title"
+✅ GOOD: "SO-WHAT | 1/3 | 'Background' is a generic section label, not a finding. The slide describes what YOU did ('We analyzed the funnel') instead of what the AUDIENCE should know. Better: 'Q4 conversion fell 2.1 points to 4.2% despite 18% traffic growth'"
+
+Use this format for each slide:
 
 ```
-Slide N: "[title]"
-  SO-WHAT:  [0-3] — [reasoning]
-  STAKES:   [0-3] — [reasoning]
-  EVIDENCE: [0-3] — [reasoning]
-  ASK:      [0-3] — [reasoning]
-  Total:    [X/12]
-  Anti-patterns: [list any detected]
+### Slide N: "[exact title from deck]"
+
+| Check | Score | Reasoning |
+|-------|-------|-----------|
+| SO-WHAT | X/3 | [Detailed explanation: Is this an action headline (3), descriptive (2), label (1), or missing (0)? What would make it better?] |
+| STAKES | X/3 | [Detailed explanation: Is business impact quantified (3), implied (2), generic (1), or absent (0)? What's missing?] |
+| EVIDENCE | X/3 | [Detailed explanation: Is evidence focused (3), moderate (2), data dump (1), or missing (0)? Count bullets/charts.] |
+| ASK | X/3 | [Detailed explanation: Is ask specific (3), vague (2), implied (1), or absent (0)? What would be actionable?] |
+| **Total** | **X/12** | |
+
+**Anti-patterns:** [List any detected, or "None"]
 ```
+
+**Important:** Title slides (slide 1) typically score 0-1 on EVIDENCE and ASK — this is expected. Comment on whether they preview the story effectively.
 
 #### Step 3: Flag anti-patterns
 
-Check each slide and the deck overall for these common anti-patterns:
+Check each slide and the deck overall for these common anti-patterns.
+
+**IMPORTANT:** After scoring all slides, you MUST create an anti-pattern summary table. This is not optional. The table format is:
 
 | Anti-Pattern | Detection | Severity |
 |-------------|-----------|----------|
@@ -95,10 +135,25 @@ Check each slide and the deck overall for these common anti-patterns:
 | **No ask** | Final slide has no recommendation or decision request | High |
 | **"Questions?" closer** | Deck ends with a "Questions?" slide instead of a clear ask | High |
 | **Appendix bloat** | More than 3 appendix slides (suggests content wasn't curated) | Low |
+| **Placeholder content** | Uses "Feature X", "Segment Y", or other generic placeholders | Medium |
+
+**After identifying anti-patterns, create the summary table in this exact format:**
+
+```markdown
+## Anti-Pattern Summary
+
+| Anti-Pattern | Slides Affected | Severity |
+|-------------|----------------|----------|
+| [pattern name] | [slide numbers] | [High/Medium/Low] |
+```
+
+This table is MANDATORY — it provides a scannable view of structural problems and helps prioritize fixes.
 
 #### Step 4: Calculate overall grade
 
 **Deck Score** = average of all slide scores (out of 12)
+
+Calculate the average carefully: sum all slide totals, divide by number of slides, round to 1 decimal place.
 
 | Grade | Avg Score | Diagnosis |
 |-------|-----------|-----------|
@@ -108,25 +163,68 @@ Check each slide and the deck overall for these common anti-patterns:
 | D | 4-5.9 | Poor — data dump with no clear story or ask |
 | F | 0-3.9 | Failing — no story, no stakes, no ask; needs complete rewrite |
 
+**Be brutally honest with grading.** Grade inflation undermines trust. Apply these rules:
+
+- **All label titles ("Background", "Methodology") = D or F** — Not C, not B. Label titles mean there's no story.
+- **Ends with "Questions?" instead of a specific ask = automatic F** — This is the worst anti-pattern.
+- **No quantified stakes anywhere = max grade is C** — Data without impact is trivia.
+- **8+ slides scoring below 6/12 = F** — Even if a few slides are good.
+
+The purpose of an honest grade is to route the user to the right fix:
+- F → /deck-rescue (complete rewrite)
+- D → /deck-rescue (major restructuring)
+- C → /slide-transform (fix worst slides)
+- B → manual fixes (tactical polish)
+- A → ready to present
+
+If you give a D to a deck that deserves an F, the user won't get the full rewrite they need.
+
 #### Step 5: Generate the prescription
 
-Produce a prioritized list of fixes, ordered by impact:
+Produce a prioritized list of fixes, ordered by impact. **The prescription MUST be organized into three tiers:**
 
-1. **Critical fixes** (would change the grade) — e.g., "Rewrite all titles as action headlines"
-2. **High-impact fixes** (improve audience comprehension) — e.g., "Add a clear ask to the final slide"
-3. **Polish fixes** (improve professionalism) — e.g., "Replace pie charts with horizontal bars"
+### Critical
+Fixes that would change the overall grade (e.g., F→C, D→B). These address fundamental story structure failures.
+
+Examples:
+- "Rewrite all titles as action headlines" (if all slides use label titles)
+- "Add quantified stakes to every slide" (if deck has no business impact anywhere)
+- "Replace 'Questions?' with specific ask" (if deck ends with worst anti-pattern)
+
+### High-Impact
+Fixes that improve audience comprehension without changing the grade. These address evidence clarity, comparison context, or narrative flow.
+
+Examples:
+- "Add comparison benchmarks to all metrics"
+- "Build a narrative arc connecting slides"
+- "Annotate charts to highlight key takeaways"
+
+### Polish
+Fixes that improve professionalism and visual design. These are nice-to-haves.
+
+Examples:
+- "Replace pie charts with horizontal bars"
+- "Reduce bullet counts to max 4 per slide"
+- "Remove appendix bloat"
+
+**For each fix in each tier, provide:**
+- **What to change** (specific, actionable)
+- **Why it matters** (connect to scoring framework)
+- **Example** (show a rewrite or provide a concrete suggestion)
+
+**Make prescriptions actionable.** Instead of "Improve titles", say "Rewrite slide 2 title from 'Background' to 'Q4 conversion fell 3.2 points YoY despite traffic growth'".
 
 ### Output Format
 
-Save to `working/deck_critique_{{DATE}}.md`:
+Save the critique to `working/deck_critique_YYYYMMDD.md` (use current date). The file should follow this exact structure:
 
 ```markdown
 # Deck Critique: [Deck Title or Filename]
 
-**Date:** {{DATE}}
+**Date:** YYYY-MM-DD
 **Source:** [file path or Slides ID]
-**Audience:** [if provided]
-**Context:** [if provided]
+**Audience:** [if provided, else "Not specified"]
+**Context:** [if provided, else "Not specified"]
 
 ## Overall Grade: [A-F]
 

@@ -84,7 +84,7 @@ condition matches -- you do not need to be asked.
 | First-Run Welcome | `.claude/skills/first-run-welcome/skill.md` | First session (no user profile) — adaptive onboarding based on available data |
 | Data Profiling | `.claude/skills/data-profiling/skill.md` | After connecting a new dataset — deep-profile schema, distributions, temporal patterns, completeness, anomalies |
 | Explore | `.claude/skills/explore/skill.md` | Invoked as `/explore` — quick interactive data exploration without full pipeline |
-| Export | `.claude/skills/export/skill.md` | Invoked as `/export {format}` — export results as slides, email, slack, brief, or data |
+| Export | `.claude/skills/export/skill.md` | Invoked as `/export {format}` — export results as slides, email, slack, brief, data, gdoc (Google Doc with charts + SQL), or docx (local Word file) |
 | Connect Data | `.claude/skills/connect-data/skill.md` | Invoked as `/connect-data` — add a new dataset connection |
 | Metrics | `.claude/skills/metrics/skill.md` | Invoked as `/metrics` — view and manage metric dictionary entries |
 | Compare Datasets | `.claude/skills/compare-datasets/skill.md` | Comparing metrics or patterns across two datasets |
@@ -198,6 +198,11 @@ When asked to analyze data, follow this process:
     editable Google Slides deck instead of Marp PDF, use the Google Slides
     Creator agent. Requires Google Workspace MCP connection. The Google Slides
     Reviewer agent runs automatically after creation to fix formatting issues.
+16c. **Create Google Doc** (optional) -- If the user wants a shareable Google
+    Doc with the full Analysis Readout (Summary, Analysis with charts,
+    Resources with SQL), use `/export gdoc`. This runs the narrative parser
+    + gdoc builder + Drive upload. Always produces a local .docx backup.
+    Requires Google Docs MCP connection (configured in `.mcp.json`).
 17. **Review deck design** -- Check the Marp deck for font sizes, theme
     consistency, and dark mode rendering issues. Pass {{DECK_FILE}} and
     {{THEME}}. (Use Visual Design Critic agent -- slide-level review)
@@ -266,6 +271,16 @@ Python helpers for source detection and fallback are in `helpers/data_helpers.py
 ### Chart Helpers & Style
 
 See `helpers/INDEX.md` for the complete list of helper modules and their functions.
+
+### Google Doc Export
+
+`/export gdoc` creates a formatted Google Doc from analysis outputs using the
+Analysis Readout template (Summary with bookmark links → Analysis with charts →
+Resources with SQL). Built on `helpers/gdoc_builder.py` (python-docx generation)
+and `helpers/gdoc_narrative_parser.py` (pipeline artifact parsing). Requires
+`google-docs` MCP server (configured in `.mcp.json`). Always generates a local
+`.docx` backup before uploading. Use `/export docx` for the Word file without
+Google upload.
 
 ---
 

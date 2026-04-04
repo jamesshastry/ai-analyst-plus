@@ -1,23 +1,217 @@
+---
+name: google-doc-export
+description: Create properly formatted Google Docs via the MCP API. This skill prevents common issues like text/image overlap, broken heading hierarchy, excessive whitespace, and inconsistent formatting. Use this skill automatically whenever you're building a Google Doc, calling any google-docs MCP tool (create_document, append_text, write_formatted_content, insert_image, upload_file_to_drive, etc.), designing a document structure, or when the google-doc-creator or google-doc-reviewer agent is running. This skill is essential for ANY workflow involving Google Docs creation, document formatting, analysis writeups in Google Docs, report generation to Docs, chart embedding in documents, or exporting analysis results to shareable Docs. Make sure to use this skill whenever the user wants to create a Doc, export to Google Docs, share analysis as a Doc, build a formatted document, or mentions Google Docs in any capacity.
+---
+
 # Skill: Google Doc Export
 
 ## Purpose
 
 Create properly formatted Google Docs via the MCP API. Prevents common issues:
 text/image overlap, broken heading hierarchy, excessive whitespace, inconsistent
-formatting. The Google Docs equivalent of the Google Slides Export skill.
-
-## When to Apply
-
-Automatically whenever:
-- `mcp__google-workspace__batch_update_doc` will be called
-- A Google Doc is being designed or built
-- The `google-doc-creator` or `google-doc-reviewer` agent is running
+formatting.
 
 ---
 
-## Section A: Pre-Flight Checklist
+## Section 0: Quick Decision Tree — START HERE
 
-Run this checklist BEFORE building any batch_update requests. Fix all violations first.
+**Step 1: What type of document are you creating?**
+
+- **Analysis report/writeup** → Use `.docx → Google Docs` workflow (Section A) with `helpers/gdoc_builder.py`
+- **Simple text-only doc** (meeting notes, memo) → Use direct MCP API (Section B)
+- **Non-analysis document** (proposal, spec) → Check `helpers/INDEX.md` for helpers, else use python-docx directly
+
+**Step 2: Choose your approach based on document type:**
+
+### ✅ Recommended: .docx → Google Docs Conversion (use for 90% of cases)
+
+**When:** Any doc with charts, tables, or complex formatting (analysis reports, writeups)
+
+**Why:** Most reliable. Avoids index calculation errors, handles images/tables automatically, always creates local backup.
+
+**How:**
+```python
+# 1. Use helpers/gdoc_builder.py to create .docx locally
+# 2. Upload with conversion flag
+upload_file_to_drive(
+    file_path="/path/to/report.docx",
+    convert_to_google_doc=True
+)
+# 3. Done! Returns Google Doc URL
+```
+
+**Available MCP function:** `mcp__google-docs__upload_file_to_drive(file_path, convert_to_google_doc=True)`
+
+### Alternative: Direct MCP API Calls (simple text-only docs)
+
+**When:** Quick text-only docs with no images/tables (meeting notes, simple memos)
+
+**Available MCP functions:**
+- `mcp__google-docs__create_document(title)` — create blank doc
+- `mcp__google-docs__append_text(document_id, text)` — add text to end
+- `mcp__google-docs__write_formatted_content(document_id, content_blocks)` — headings + body text
+- `mcp__google-docs__insert_image(document_id, image_url, width_pts, height_pts)` — embed image
+- `mcp__google-docs__read_document(document_id)` — read doc content
+
+**Note:** Many functions referenced in older docs (batch_update_doc, update_paragraph_style, modify_doc_text, insert_table, debug_table_structure, format_text, inspect_doc_structure) do NOT exist in the current MCP API.
+
+---
+
+## Section A: Using the .docx → Google Docs Workflow (RECOMMENDED)
+
+This is the easiest and most reliable approach for complex documents.
+
+### Step 1: Generate .docx Locally
+
+**IMPORTANT: Always check for existing helpers before writing .docx code from scratch.**
+
+#### Option 1A: Use `helpers/gdoc_builder.py` (PREFERRED for analysis documents)
+
+**When to use:** Creating analysis reports, findings writeups, or any document following the Analysis Readout template (Context → Summary → Analysis → Next Steps → Resources).
+
+**Why:** Pre-built, tested, handles all formatting automatically. Don't reinvent the wheel.
+
+```python
+from helpers.gdoc_builder import build_readout
+
+# Build structured analysis document
+doc_data = {
+    "title": "Q1 Analysis",
+    "findings": [...],  # Your analysis content
+    "charts": ["/path/to/chart1.png", "/path/to/chart2.png"]
+}
+
+docx_path = build_readout(doc_data)  # Returns path to .docx file
+```
+
+The builder automatically applies:
+- Proper heading hierarchy (H1 → H2 → H3 → H4)
+- Bold labels ("The Insight:", "Why this matters for product:")
+- Chart embedding at 6 inches wide with captions
+- Figure numbering
+- Professional spacing
+- Analysis Readout template structure
+
+#### Option 1B: Use python-docx directly (ONLY if no helper exists)
+
+**When to use:** Creating non-analysis documents (proposals, specs, design docs) that don't fit the Analysis Readout template.
+
+**Requirements:**
+- Check `helpers/INDEX.md` first to verify no helper exists for your use case
+- If building from scratch, create the .docx with proper heading hierarchy
+- Always save to `/Users/shanebutler/projects/ai-analyst-plus/outputs/` directory
+- Use descriptive filename with date suffix: `report_[title]_[YYYYMMDD].docx`
+
+**Example:**
+```python
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+doc = Document()
+# Add title
+title = doc.add_heading('Document Title', level=1)
+# Add content sections...
+# Add charts
+doc.add_picture('/path/to/chart.png', width=Inches(6))
+# Save
+doc.save('/Users/shanebutler/projects/ai-analyst-plus/outputs/report_title_20260404.docx')
+```
+
+### Step 2: Upload with Conversion
+
+**CRITICAL: The local .docx file IS your backup. Do not delete it.**
+
+```python
+result = mcp__google-docs__upload_file_to_drive(
+    file_path=docx_path,
+    convert_to_google_doc=True
+)
+
+# Returns: {"file_id": "...", "url": "https://docs.google.com/document/d/..."}
+```
+
+### Step 3: Confirm Deliverables
+
+You now have TWO deliverables (always provide both to the user):
+
+1. **Live Google Doc** - `result["url"]`
+   - Editable, shareable, lives in Google Drive
+   - Charts embedded permanently (no expiration)
+
+2. **Local backup** - `docx_path`
+   - Archival copy in `/outputs/` directory
+   - Useful for version control, offline access
+   - REQUIRED: Always mention both the Google Doc URL AND the local file path in your response to the user
+
+### Why This Works Better
+
+Google's .docx converter handles:
+- Image placement (no index calculation needed)
+- Table creation (no manual cell population)
+- Bold/italic/heading styles
+- Spacing and layout
+
+No risk of index invalidation, no image timing issues, no tmpfiles.org expiration.
+
+---
+
+## Section B: Direct MCP API Approach (Simple Docs Only)
+
+For simple text-only documents, you can use MCP functions directly.
+
+### Create and Populate
+
+```python
+# 1. Create blank doc
+result = mcp__google-docs__create_document(title="Meeting Notes")
+doc_id = result["document_id"]
+
+# 2. Add formatted content
+content_blocks = [
+    {"type": "heading1", "text": "Meeting Notes\n"},
+    {"type": "body", "text": "Attendees: Alice, Bob\n\n"},
+    {"type": "heading2", "text": "Discussion Points\n"},
+    {"type": "body", "text": "We reviewed the Q1 results...\n"}
+]
+
+mcp__google-docs__write_formatted_content(
+    document_id=doc_id,
+    content_blocks=json.dumps(content_blocks)
+)
+```
+
+### Insert Images (if needed)
+
+```python
+# 1. Upload image to Drive first
+image_result = mcp__google-docs__upload_image_to_drive(
+    file_path="/path/to/chart.png"
+)
+image_url = image_result["url"]
+
+# 2. Read doc to find insertion index
+doc_content = mcp__google-docs__read_document(document_id=doc_id)
+# Find the index where you want the image
+
+# 3. Insert image with BOTH width and height
+mcp__google-docs__insert_image(
+    document_id=doc_id,
+    image_url=image_url,
+    width_pts=400,
+    height_pts=300  # REQUIRED - calculate from aspect ratio if needed
+)
+```
+
+**Critical:** Always specify BOTH `width_pts` and `height_pts`. Omitting height causes API error.
+
+---
+
+## Section C: Document Structure Standards
+
+### Standard Analysis Document Template
+
+Use this structure for analysis reports:
 
 - [ ] **Text inserted before images** — all text content must be in the doc
       before any image insertion. Images shift all indices.
@@ -94,9 +288,33 @@ After bullet list:  1 empty paragraph
 
 ---
 
-## Section C: Image Placement Rules
+### Spacing Rules
 
-### Sizing
+```
+After H1:          2 empty paragraphs
+After H2:          1 empty paragraph
+Before chart:      1 empty paragraph
+After chart:       1 empty paragraph
+Before table:      1 empty paragraph
+After table:       1 empty paragraph
+Between sections:  2 empty paragraphs
+Between paragraphs: 0 empty paragraphs (natural spacing)
+After bullet list:  1 empty paragraph
+```
+
+### Bold Labels (Auto-Applied by gdoc_builder)
+
+These phrases should always be bold when they appear at the start of a paragraph:
+- "The Insight:"
+- "Why this matters for product:"
+- "Bottom line:"
+- "Key context:"
+- "Data quality flag:"
+- "Sample size warning:"
+
+---
+
+## Section D: Image Sizing Reference
 
 ```
 Standard chart:     width=400, height=300  (4:3 ratio)
@@ -108,148 +326,46 @@ Small inline:       width=250, height=200  (for side notes)
 Always specify both width and height. If only one dimension is known,
 calculate the other from the image's aspect ratio.
 
-### Placement Workflow
-
-For each section that needs a chart:
-
-1. **Audit for existing images first** — call `inspect_doc_structure(detailed=true)`
-   and scan for 2-char paragraphs (start_index to end_index = 2 chars) near the
-   target location. These are inline image objects. Also check if any text paragraph
-   has 1 more character than its visible text — that extra char is an old inline
-   image. **If an image already exists at the target, SKIP insertion.**
-
-2. **Create a dedicated image paragraph** — insert `"\n\n"` at the target index
-   via `batch_update_doc`. The first `\n` becomes the image paragraph, the second
-   creates a blank line below the image for spacing. This is an ATOMIC step — do
-   it before inserting the image.
-
-3. **Insert the image** at the first `\n`'s start_index (the new empty paragraph):
-   ```
-   mcp__google-workspace__insert_doc_image(
-       document_id=...,
-       image_source="<DRIVE_FILE_ID>",
-       index=<empty_para_start>,
-       width=400,
-       height=300
-   )
-   ```
-   **CRITICAL:** Always pass the Drive file ID directly as `image_source`, and
-   always specify BOTH `width` and `height`. Omitting height causes an API error.
-
-4. **Center the image paragraph:**
-   ```
-   update_paragraph_style(
-       start_index=<image_para_start>,
-       end_index=<image_para_end>,
-       alignment="CENTER"
-   )
-   ```
-
-5. **Re-read structure** — `inspect_doc_structure` again before the next image.
-
-6. **Work bottom-to-top** — insert the last section's image first, then work
-   backwards. This prevents earlier insertions from shifting later indices.
-
-### Detecting Duplicate Images
-
-An inline image in Google Docs is a single replacement character (U+FFFC). The
-`inspect_doc_structure` tool shows it as a 2-char paragraph (`[image_char]\n`)
-with text_preview `"\n"`. To detect old inline images embedded in text:
-
-```
-Expected text length = len("paragraph text content") + 1  (for \n)
-Actual paragraph length = end_index - start_index
-If actual > expected: the paragraph contains an inline image character
-```
-
-To remove: delete 1 char at the paragraph's start_index (the inline object).
-The text remains intact.
-
-### Image URL Format
-
-```
-OK:  https://drive.google.com/uc?id={FILE_ID}&export=download
-OK:  https://tmpfiles.org/dl/{ID}/chart.png  (temporary — expires in 1 hour)
-BAD: data:image/png;base64,...  (not supported)
-BAD: http://localhost:...  (not accessible by Google servers)
-```
-
-Always prefer Drive file IDs. Upload to Drive first, then use the Drive URL.
-
----
-
-## Section D: Text Formatting Rules
-
-### Heading Styles
-
-| Level | Use for | Applied via |
-|-------|---------|-------------|
-| H1 | Document title (exactly one) | `update_paragraph_style(heading_level=1)` |
-| H2 | Major sections | `update_paragraph_style(heading_level=2)` |
-| H3 | Subsections within a section | `update_paragraph_style(heading_level=3)` |
-| Normal | Body text, bullets, data | Default (no heading_level needed) |
-
-### Bold Labels
-
-These phrases should always be bold when they appear at the start of a paragraph:
-- "The Insight:"
-- "Why this matters for product:"
-- "Bottom line:"
-- "Key context:"
-- "Data quality flag:"
-- "Sample size warning:"
-- "The creative angle:"
-- "The interpretation:"
-
-Apply bold via `modify_doc_text` with bold=true on the label text range.
-
-### Lists
-
-- Use `update_paragraph_style(list_type="UNORDERED")` for bullet lists
-- Use `update_paragraph_style(list_type="ORDERED")` for numbered lists
-- Nest with `list_nesting_level=1` for sub-items
-
-### Tables (All Types)
-
-Google Docs tables require a specific creation workflow to avoid index errors:
-
-**Table Creation Pattern:**
-1. **Insert the table** via `insert_table` at a known index (after an empty paragraph)
-2. **Read cell indices** via `debug_table_structure` — never guess cell positions
-3. **Populate cells bottom-to-top** (highest cell index first) to avoid index shifts
-4. **Bold header row** — format the first row with bold + slightly larger font (12pt)
-5. **Add spacing** — ensure 1 empty paragraph before and after the table
-
-**Table Spacing Rule (MANDATORY):**
-After every table, there MUST be at least 1 empty paragraph (`\n`) before the
-next text paragraph begins. Without this, text runs directly into the table
-bottom border, which looks broken.
-
-**Header Row Formatting:**
-All table header cells should be bold with font_size=12. Apply via `format_text`
-on each header cell's text range after population.
-
-### Appendix Tables
-
-For summary statistics, prefer Google Docs tables over plain text.
-Numeric columns should be right-aligned.
-
 ---
 
 ## Section E: Common Pitfalls
 
 | Pitfall | What happens | Prevention |
 |---------|-------------|------------|
-| Insert image into text paragraph | Image overlaps with text, unreadable | Always insert into empty dedicated paragraph |
-| Insert images top-to-bottom | Later indices are wrong, images land in wrong spots | Always insert bottom-to-top |
-| Don't re-read structure after image | Subsequent operations use stale indices | Re-read after every image insertion |
-| Use tmpfiles.org URL in doc | Image disappears after 1 hour | Upload to Drive first, use Drive URL |
-| Skip heading formatting | Document has no structure, looks like a wall of text | Apply heading styles immediately after text insertion |
+| Use tmpfiles.org URL | Image disappears after 1 hour | Upload to Drive first or use .docx embed |
+| Omit height in insert_image | API error: "height must be greater than 0" | Always specify both width AND height |
+| Use unavailable MCP functions | Tool not found error | Check Section 0 for available functions |
+| No local backup | Doc only exists in Google's cloud | Use .docx → Google Docs conversion |
+| Complex doc via API calls | Index errors, image placement failures | Use .docx conversion instead |
 | Too many empty paragraphs | Excessive whitespace, unprofessional | Max 2 consecutive empty paragraphs |
-| Bold entire paragraphs | Hard to read, loses emphasis effect | Bold only labels/key phrases, not full paragraphs |
-| No spacing after tables | Text runs into table bottom border | Always 1 empty paragraph after every table |
-| Re-insert images on session resume | Duplicate charts appear side by side | Audit for existing images before inserting |
-| Insert image at text paragraph start | Image becomes inline char, text flows after it | Always create dedicated empty paragraph first |
 | Stub headings with no body | Orphaned headings confuse readers | Only insert headings that have content beneath |
-| Populate table cells top-to-bottom | Index shifts corrupt later cells | Always populate cells bottom-to-top (highest index first) |
-| Omit height in insert_doc_image | API error: "height must be greater than 0" | Always specify both width AND height |
+
+---
+
+## Section F: Quick Reference - Available MCP Functions
+
+```python
+# Document operations
+create_document(title: str) → {"document_id": str}
+read_document(document_id: str) → str
+append_text(document_id: str, text: str) → status
+write_formatted_content(document_id: str, content_blocks: str) → status
+
+# Image operations
+insert_image(document_id: str, image_url: str, width_pts: int, height_pts: int) → status
+upload_image_to_drive(file_path: str, file_name: str) → {"file_id": str, "url": str}
+
+# File operations (RECOMMENDED for complex docs)
+upload_file_to_drive(file_path: str, convert_to_google_doc: bool) → {"file_id": str, "url": str}
+```
+
+**Functions that DO NOT exist:**
+- batch_update_doc
+- update_paragraph_style
+- modify_doc_text
+- insert_table
+- debug_table_structure
+- format_text
+- inspect_doc_structure
+
+If you need these features, use the .docx → Google Docs workflow (Section A).

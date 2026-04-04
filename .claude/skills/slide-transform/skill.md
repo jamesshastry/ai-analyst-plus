@@ -1,3 +1,9 @@
+---
+name: slide-transform
+description: |
+  Take one bad slide and produce 2-3 redesigned variants with before/after scoring. Each variant targets a different dimension of the Data Story Checklist (SO-WHAT, STAKES, EVIDENCE, ASK). Use this skill whenever the user mentions fixing slides, improving presentations, redesigning deck content, making slides better, transforming slides, or rewriting slides. Also trigger automatically after /deck-critique identifies slides scoring below 6/12 — those need transformation. Apply when users say things like "fix slide 3", "make this slide better", "transform this slide", "improve the headline", "this slide is confusing", "redesign this", "show me different ways to present this", "the deck critique found issues", or "these slides need work". Even if they don't use the exact phrase "slide transform", any request to improve, fix, enhance, redesign, rewrite, or optimize individual slides should invoke this skill. This is the primary tool for slide-level improvements — it produces multiple variants so stakeholders can choose the best approach. The skill handles diagnosis (scoring the original), variant generation (Headline Fix for SO-WHAT, Declutter for EVIDENCE, Story Reframe for STAKES/ASK), and comparison (side-by-side scoring table). Always trigger when slides need improvement, when deck critique scores are low, when users want to see multiple presentation approaches, when a slide is called out as weak, or when someone asks "how can I make this slide better?". This skill is essential for deck rescue operations, post-critique improvements, and stakeholder-ready presentation polish.
+---
+
 # Skill: Slide Transform
 
 ## Purpose
@@ -19,6 +25,25 @@ This skill can be invoked directly as `/slide-transform` or called by the presen
 - **`{{CRITIQUE}}`** (optional): The per-slide scorecard from `/deck-critique` — if provided, uses the specific scores to guide the transformation
 
 ## Instructions
+
+### Before You Start: Input Validation
+
+**If the user hasn't provided the actual slide content:**
+
+Stop and ask for it. Do NOT create an example slide or guess what the slide might contain. You need the real slide content to provide useful transformations. Ask:
+
+- "Can you share the slide content? You can paste the text, share the Marp markdown, or describe what's currently on the slide."
+
+**Reason:** Transforming a hypothetical slide wastes time and produces variants the user can't actually use. The whole point is to fix THEIR slide, not a made-up one.
+
+**If the user's context is unclear:**
+
+Ask clarifying questions before proceeding:
+- What decision does this slide need to inform? (helps determine if Variant C should emphasize stakes vs ask)
+- Who's the audience? (exec = emphasis on stakes and ROI; PM = emphasis on action and metrics)
+- What's the primary problem with the current slide? (helps prioritize which variant to recommend)
+
+**Reason:** The skill produces 3 variants with different strengths. Without knowing the context, you can't recommend which one to use. Better to ask upfront than produce variants that miss the mark.
 
 ### Transformation Process
 
@@ -106,16 +131,21 @@ Extract the raw content:
 
 #### Step 4: Generate Variant C — Story Reframe
 
-**Goal:** Restructure around stakes + ask. May split into 2 slides if the content warrants it.
+**Goal:** Restructure around stakes + ask. Split into 2 slides when needed (see criteria below).
 
 **Process:**
 1. Identify the audience and what decision this slide should inform
 2. Reframe the content around: "Why should [audience] care about this?"
 3. Add explicit stakes (quantified impact if possible)
 4. Add a clear ask or next step
-5. If the slide has too much for one frame, split into:
-   - Slide 1: The finding + stakes
-   - Slide 2: The evidence + ask
+5. **When to split into 2 slides:**
+   - Split when adding both quantified stakes AND a clear ask would create >8 bullets or make the slide visually dense
+   - Split when the slide is part of a longer deck where narrative flow benefits from separation (finding/stakes → options/ask)
+   - Keep as 1 slide when the original is already concise, or for email/async review where minimizing slide count matters
+
+   If splitting:
+   - Slide 1: The finding + stakes (why this matters)
+   - Slide 2: The evidence + ask (what to do about it)
 
 **Template:**
 ```markdown
@@ -160,7 +190,9 @@ Extract the raw content:
 
 ### Output Format
 
-Save to `working/slide_transform_{{DATE}}.md`:
+**REQUIRED:** Save your complete transformation report to `working/slide_transform_{{DATE}}.md`. This file is used for handoff to other agents (like the presentation-doctor orchestrator). If you don't save it, the work is lost.
+
+Format:
 
 ```markdown
 # Slide Transform: [Original Slide Title]
@@ -191,9 +223,24 @@ Save to `working/slide_transform_{{DATE}}.md`:
 All variant slides must be valid Marp markdown:
 - Use `---` as slide separators
 - Use `<!-- _class: ... -->` for slide classes from the active theme
-- Charts referenced as `![](path/to/chart.png)` — note that chart generation is NOT part of this skill; reference existing charts or describe placeholder charts
 - Keep bullet lists to 3 items max
 - Use bold for key numbers: `**67%**`, `**$2.3M**`
+
+**IMPORTANT: Chart References**
+
+How to handle charts in your variants:
+
+1. **If a chart already exists** (e.g., in `outputs/` or `working/`):
+   - Reference it with the full path: `![](outputs/chart_conversion_funnel.png)`
+   - Check the file exists before referencing it
+
+2. **If no chart exists but one would help**:
+   - Note what chart SHOULD be created: `<!-- Chart needed: Conversion funnel showing mobile (47.8%) vs desktop (61.2%) completion rates -->`
+   - Do NOT write `![](placeholder_chart.png)` — that breaks deck rendering
+
+3. **This skill does NOT generate charts**:
+   - Chart generation is handled by the Chart Maker agent/skill
+   - Your job is to design the slide layout and note what visual elements would strengthen it
 
 ## Handoff
 

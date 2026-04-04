@@ -1,3 +1,9 @@
+---
+name: run-pipeline
+description: |
+  Execute the complete end-to-end analysis pipeline — from raw data and business question to validated slide deck with charts. This is your power tool for delivering full analyses fast. Use this skill whenever the user wants to run a comprehensive analysis workflow, needs a complete deck with insights and recommendations, says things like "/run-pipeline", "run the full pipeline", "analyze this end-to-end", "take this through the full workflow", "I need a complete analysis", "build me a deck", "investigate this data thoroughly", "do the full analytical treatment", or when you detect a complex analytical request (L4-L5 from question-router) that requires multiple phases. This skill manages the entire DAG-based execution engine: pre-flight validation, per-run directory isolation, dynamic dependency resolution, parallel agent execution, checkpoint gates, chart fan-out, automated validation loops, Marp linting, PDF/HTML export, metric capture, and analysis archival. It handles crash recovery, timeout management, circuit breakers, and progress reporting. Always consider this skill when an analysis requires more than just data exploration — when you need hypothesis generation, root cause investigation, opportunity sizing, storyboarding, charting, narrative writing, and deck creation all orchestrated together. This is the skill that turns "why did our conversion rate drop?" into a polished 15-slide presentation with validated findings and actionable recommendations.
+---
+
 # Skill: Run Pipeline
 
 ## Purpose
@@ -5,6 +11,45 @@ Single entry point for end-to-end analysis — from raw data to finished slide d
 
 ## When to Use
 Invoke with: `/run-pipeline`, "run the full pipeline", "analyze end-to-end", or "take this data through the full workflow".
+
+## CRITICAL: Completion Guarantee
+
+**You MUST deliver a complete deck.** This is non-negotiable. The pipeline's purpose is to produce presentation-ready slides — everything else (validation, checkpoints, metrics) serves that goal.
+
+**If you cannot complete the full DAG:**
+1. **Produce a minimal viable deck** using whatever phase you've reached:
+   - Got to data exploration? → Create a 5-slide "Data Profile" deck
+   - Got to analysis? → Create an 8-slide "Findings" deck with charts
+   - Got to storyboard? → Create a draft deck from storyboard beats
+2. **Mark pipeline_state.json as `degraded`** and document which phases were skipped
+3. **Save all completed artifacts** to outputs/ so the work isn't lost
+4. **Tell the user** what was completed and what would improve with `/resume-pipeline`
+
+**Never stop with only intermediate files (question briefs, hypotheses, data inventories).** If you produce those, you MUST also produce slides, even if they're draft quality.
+
+## Fast Path Guidance
+
+The full DAG with all 11 rules is designed for complex L4-L5 analyses. For simpler cases, you can streamline:
+
+**When to use the simplified path:**
+- User provides ALL required arguments inline (`/run-pipeline data_path=... question=... theme=...`)
+- The question is focused and doesn't require hypothesis generation (e.g., "compare conversion rates")
+- Time or context constraints make full execution challenging
+
+**Fast path workflow:**
+1. Skip or abbreviate framing (use question as-is)
+2. Run data exploration + basic analysis inline (no separate agents)
+3. Generate 2-3 key charts directly
+4. Create a short deck (5-10 slides) with findings
+5. Export to PDF/HTML if Marp CLI available
+
+**Still required on fast path:**
+- R1 (theme handling), R2 (chart ≠ headline), R3 (chart background), R7 (figsize)
+- At least one chart
+- A Marp deck (even if short)
+- HTML components (can be minimal - just `.so-what` + `.chart-container`)
+
+The fast path prioritizes **delivery over perfection** - a 7-slide deck with 2 charts beats stopping partway through a 20-slide masterpiece.
 
 ## Accepted Arguments
 

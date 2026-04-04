@@ -1,3 +1,8 @@
+---
+name: google-slides-export
+description: Create properly formatted Google Slides presentations via the MCP API. Use this skill whenever you're building Google Slides decks, calling batch_update_presentation, designing slide layouts, or the google-slides-creator or google-slides-reviewer agents are running. This skill prevents common API errors (zero-weight outlines, short object IDs, oversized batches, text overflow) and ensures professional deck design with consistent brand styling, proper spacing, and no overlapping elements. Apply this automatically when any MCP Google Slides API calls are being made, when converting Marp decks to Google Slides, when creating presentation decks for analysis results, when building slide decks for stakeholders, or any time the user mentions "Google Slides", "export to slides", "create a presentation", or "share as slides". The skill provides a complete design system (color palette, layout zones, font hierarchy) and pre-validated slide type recipes (title slide, section divider, header + bullets, KPI cards, two-column, chart slide with images). Essential for avoiding API failures and producing clean, professional presentations every time.
+---
+
 # Skill: Google Slides Export
 
 ## Purpose

@@ -1,6 +1,11 @@
+---
+name: stress-test
+description: |
+  Pressure-test any analysis plan, investigation design, or analytical approach for hidden methodological flaws before execution. Acts as a "senior data scientist code review" for your analytical thinking, catching issues like wrong baselines, survivorship bias, missing segments, uncontrolled confounds, and absent kill criteria. Use this skill BEFORE committing time to executing an analysis — whether you've designed it via /analysis-design, written it yourself, received it from a stakeholder, or pulled it from a document. Apply this skill whenever someone says "stress test this plan", "review my analysis design", "check my approach", "is this analysis sound?", "can you review my investigation plan?", "does this approach make sense?", "gut-check this analysis", "what am I missing in this design?", "validate my analytical approach", or explicitly invokes `/stress-test`. This skill is critical when you're about to present an analysis design to stakeholders, when committing a week to executing a plan, when reviewing someone else's analytical approach, when an analysis came back with unexpected results and you're wondering if the design was flawed, when you want a methodological sanity check, when designing a high-stakes investigation, when a PM hands you an analysis brief to execute, or anytime you need rigorous validation of analytical thinking before work begins. The skill works standalone — it reviews ANY plan, regardless of how it was created. It produces a 7-point diagnostic with PASS/WARNING/FAIL verdicts, critical issues, warnings, recommended fixes, and an overall grade (A-F). This is your safety net against analytical mistakes that waste time, mislead stakeholders, or produce unreliable conclusions.
+---
+
 # Skill: Stress Test
 
-**Trigger:** `/stress-test`, "stress test this plan", "review my analysis design", "check my approach"
 **Type:** Standalone — reviews any analysis plan for methodological flaws
 
 ---
@@ -36,7 +41,26 @@ This skill is **standalone** — it works on any analysis plan, whether produced
 
 ## The 7-Point Stress Test
 
-Review the plan against each checkpoint. For each one, assign a verdict: PASS, WARNING, or FAIL.
+**CRITICAL FIRST STEP: Check data availability BEFORE methodology review.**
+
+Before reviewing methodology quality, immediately verify that required data exists:
+1. Read the active dataset schema (`.knowledge/datasets/{active}/schema.md`)
+2. Check if the plan's required fields/tables/dimensions exist in the dataset
+3. If ANY required data is missing → HALT, skip checkpoints 1-6, jump straight to checkpoint 7, assign FAIL verdict with BLOCKER status, provide F grade, and stop
+4. If all required data exists → proceed with checkpoints 1-7 in order
+
+**Why this matters:** A methodologically perfect plan that requires non-existent data is useless. Data availability is a BLOCKER that makes all other issues irrelevant. Check it FIRST, not last.
+
+**Common data blockers to check for:**
+- Plan requires device/platform segmentation → check if device, platform, or user_agent fields exist
+- Plan requires funnel analysis → check if event-level tracking exists (page views, clicks, sessions)
+- Plan requires traffic source attribution → check if source, medium, campaign, or referrer fields exist
+- Plan requires geographic segmentation → check if country, region, city, or geo fields exist
+- Plan assumes conversion rate → check if both numerator (orders, signups) AND denominator (sessions, page views) data exist
+
+---
+
+After confirming data availability, review the plan against each checkpoint. For each one, assign a verdict: PASS, WARNING, or FAIL.
 
 ### 1. Hypothesis Clarity
 
@@ -145,29 +169,36 @@ What good criteria look like:
 
 ### 7. Output Alignment
 
-**Check:** Will the analysis output actually answer the stakeholder's question?
+**Check:** Will the analysis output actually answer the stakeholder's question? **AND can the analysis be executed with available data?**
 
 | Verdict | Criteria |
 |---------|----------|
-| PASS | Output format matches stakeholder need (decision brief for execs, detailed report for technical team) |
-| WARNING | Output will be useful but may need translation for the audience |
-| FAIL | Output is descriptive ("here's what happened") when stakeholder needs prescriptive ("here's what to do") |
+| PASS | Output format matches stakeholder need AND all required data exists |
+| WARNING | Output will be useful but may need translation for the audience, OR data exists but may have quality/completeness issues |
+| FAIL | Output is descriptive ("here's what happened") when stakeholder needs prescriptive ("here's what to do"), OR **BLOCKER: required data does not exist** (e.g., plan requires "product category" but dataset has no category field) |
 
 Common misalignment:
 - Stakeholder wants a recommendation, plan produces a description
 - Stakeholder wants dollar impact, plan produces percentages
 - Stakeholder wants a yes/no, plan produces "it depends"
 - Stakeholder wants a 1-page brief, plan will produce a 20-page report
+- **BLOCKER: Plan requires data fields that don't exist in the dataset**
 
-**Fix if FAIL:** "Restate the stakeholder's actual question and work backwards to what the output must contain."
+**Fix if FAIL (data blocker):** "HALT — this analysis cannot be executed. The dataset does not contain [required field]. Either locate the field in another table, request a data extension, or pivot to a different dimension that exists (e.g., analyze by customer segment instead of product category)."
+
+**Fix if FAIL (alignment):** "Restate the stakeholder's actual question and work backwards to what the output must contain."
 
 ---
 
 ## Output Format
 
+**Start with a 1-sentence executive summary at the top** (before the separator line) stating the grade and any blockers.
+
 ```
 STRESS TEST RESULTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[1-sentence summary: e.g., "GRADE D (2 FAILs, 2 WARNINGs) — significant redesign needed before execution" or "GRADE F — BLOCKER: required data does not exist"]
 
 OVERALL GRADE: [A/B/C/D/F]
 
@@ -182,13 +213,13 @@ OVERALL GRADE: [A/B/C/D/F]
 | 7 | Output Alignment | PASS/WARNING/FAIL | ... |
 
 CRITICAL ISSUES (must fix before executing):
-  - ...
+  - ... [If data blocker: "BLOCKER: Cannot execute — required data does not exist. [Field name] not found in dataset."]
 
 WARNINGS (address if time allows):
   - ...
 
 RECOMMENDED FIXES:
-  1. ...
+  1. ... [Include estimated time impact for top 3 fixes: "~30 min", "~2 hours", etc.]
   2. ...
   3. ...
 ```

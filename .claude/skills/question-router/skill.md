@@ -1,3 +1,9 @@
+---
+name: question-router
+description: |
+  Classify incoming analytical questions into complexity levels (L1-L5) and route them to the appropriate response path. This skill ensures that simple questions get quick answers without unnecessary overhead, while complex investigations get the full analytical treatment they deserve. Use this skill at the start of EVERY user interaction that involves data analysis, metrics, business questions, or investigative requests. Trigger on phrases like "analyze", "why did", "what's happening with", "how many", "compare", "show me", "breakdown", "investigate", "root cause", "size the opportunity", "design an experiment", "create a deck", "run the pipeline", or ANY question that asks about data, metrics, trends, segments, funnels, user behavior, revenue, conversion, retention, or any other analytical topic. Also apply when users ask follow-up questions mid-analysis, when they request charts or visualizations, when they mention datasets or tables, when they ask about business performance, when they want to understand why something changed, or when they need to make a data-driven decision. This skill should be your FIRST step before launching any analytical workflow — it prevents wasting time on over-engineered responses to simple questions and ensures complex questions get the depth they deserve. Even if the question seems straightforward, use this skill to confirm the appropriate level of depth. Apply liberally.
+---
+
 # Skill: Question Router
 
 ## Purpose
@@ -78,9 +84,48 @@ charts, narrative, and Marp deck.
 
 ## Classification Algorithm
 
+### Fast-Path Detection (optional shortcut for obvious L1 questions)
+
+Before running the full classification workflow, check if the question matches
+an obvious L1 pattern. If YES, skip to L1 execution immediately. If NO or
+UNCERTAIN, proceed to Step 0.
+
+**Trigger phrases for fast-path L1:**
+- Starts with "how many" or "how much"
+- Starts with "what's the total" or "what's the average"
+- Starts with "count of" or "number of"
+- Contains "count" + single metric/entity + optional time filter
+- Examples:
+  - "how many orders last month?"
+  - "what's the total revenue in Q4?"
+  - "count of users who converted"
+
+**Do NOT fast-path if:**
+- Question contains "compare", "by", "breakdown", or "split"
+- Question contains "why", "investigate", or "analyze"
+- Question mentions multiple metrics or dimensions
+- Question references a product change or hypothesis
+- You're uncertain whether it's genuinely simple
+
+**Why fast-path matters:** L1 questions don't benefit from the full classification
+overhead. The user wants a quick answer, not a classification report. Fast-path
+saves ~40 seconds and ~7-9k tokens for simple lookups.
+
+**Output format for fast-path L1:**
+- Answer the question directly
+- Include source citation (table, column, filter)
+- Offer 2-3 contextual next actions
+- Skip the classification documentation
+
+If you use the fast-path, you're done — don't proceed to Step 0 or beyond.
+
+---
+
 ### Step 0: Pre-flight (runs on every query before classification)
 
 Enrichment steps — never block routing. If any sub-step fails, skip it silently.
+**IMPORTANT:** Only report pre-flight findings if they actually find something.
+Silent skip if nothing found.
 
 1. **Feedback check** — The Feedback Capture skill runs BEFORE this router.
    By the time a message reaches here, corrections/learnings are already
@@ -93,20 +138,32 @@ Enrichment steps — never block routing. If any sub-step fails, skip it silentl
    - If matches found, call `format_disambiguation(matches)` and set
      `{{RESOLVED_ENTITIES}}` for downstream agents.
    - Example: "why is cvr dropping?" → Resolved: 'cvr' -> conversion_rate (metric)
-   - If entity index unavailable or no matches, leave `{{RESOLVED_ENTITIES}}` empty.
+   - **ONLY REPORT IF MATCHES FOUND.** If no matches, silent skip.
 
 3. **Corrections check** — Read `.knowledge/corrections/index.yaml`.
    - If `total_corrections > 0` for the active dataset, set
      `{{CORRECTION_COUNT}}` so analysis agents check the correction log
      before writing SQL (e.g., known join pitfalls, filter requirements).
-   - If index is missing or `total_corrections` is 0, set
-     `{{CORRECTION_COUNT}}` to 0.
+   - **ONLY REPORT IF CORRECTIONS EXIST.** If index missing or count is 0, silent skip.
 
-4. **Archaeology note** — The Query Archaeology skill provides SQL pattern
+4. **Dataset detection** — Before classifying, check whether the question
+   references a dataset other than the currently active one.
+   - Read `.knowledge/datasets/` to get all known dataset IDs and display names.
+   - Scan the user's question for exact or fuzzy matches to any dataset name.
+   - **ONLY REPORT IF MISMATCH FOUND.** If no dataset reference or matches active, silent skip.
+   - If a non-active dataset is referenced:
+     - Inform the user: "It looks like you're asking about **{display_name}**, but
+       the active dataset is **{active_display_name}**."
+     - Offer: "Want me to switch? (`/switch-dataset {id}`)"
+     - Do NOT proceed with analysis until the user confirms which dataset to use.
+
+5. **Archaeology note** — The Query Archaeology skill provides SQL pattern
    context (prior queries, reusable CTEs) to analysis agents when available.
    No action needed here — just acknowledge it flows downstream automatically.
 
 After pre-flight completes, proceed to Step 1.
+
+---
 
 ### Step 1: Parse the question
 
@@ -142,11 +199,18 @@ If `.knowledge/user/profile.md` exists, read the user's preferences:
 - **Technical level = "advanced":** Show more SQL, skip explanations
 - **Technical level = "beginner":** Add more context, explain terms
 
-### Step 4: Confirm with the user (for L3+)
+### Step 4: Respond based on classification level
 
-For L1-L2: Execute immediately. No confirmation needed.
+**For L1-L2:** Execute immediately. No confirmation needed. Streamlined output:
+- Answer the question (or produce chart)
+- Include source citation (table, column, filter)
+- Offer 2-3 contextual next actions
+- **Do NOT include:** Full classification rationale, pre-flight details (unless
+  something was found), complexity scoring table, skill adherence checklist.
+  Save that documentation for your own internal tracking — the user just wants
+  the answer.
 
-For L3-L5: Brief the user on the plan:
+**For L3-L5:** Brief the user on the plan BEFORE executing:
 ```
 I'd classify this as a **[Level] — [Label]**. Here's my plan:
 1. [Step summary]
@@ -155,10 +219,15 @@ I'd classify this as a **[Level] — [Label]**. Here's my plan:
 Estimated time: ~[X] minutes. Want me to proceed, or adjust the scope?
 ```
 
+Include any relevant pre-flight findings (dataset mismatch, corrections available,
+resolved entities) in this confirmation message.
+
 The user can:
 - **Confirm:** Proceed with the plan
 - **Adjust up:** "Go deeper" → bump to next level
 - **Adjust down:** "Just give me the quick answer" → drop to lower level
+
+---
 
 ## Integration with Pipeline
 
@@ -171,23 +240,7 @@ by setting the entry point in the Default Workflow:
 | L4 | Step 1 (Frame) | Step 8 (Size) — present findings inline |
 | L5 | Step 1 (Frame) | Step 18 (Close the Loop) — full deck |
 
-## Dataset Detection
-
-Before classifying, check whether the question references a dataset other than
-the currently active one.
-
-### Scan for dataset references
-
-1. Read `.knowledge/datasets/` to get all known dataset IDs and display names.
-2. Scan the user's question for exact or fuzzy matches to any dataset name.
-3. If a non-active dataset is referenced:
-   - Inform the user: "It looks like you're asking about **{display_name}**, but
-     the active dataset is **{active_display_name}**."
-   - Offer: "Want me to switch? (`/switch-dataset {id}`)"
-   - Do NOT proceed with analysis until the user confirms which dataset to use.
-4. If no dataset reference is found, proceed with the active dataset.
-
-This prevents accidentally running analysis on the wrong dataset.
+---
 
 ## Contextual Suggestions
 
@@ -218,6 +271,8 @@ Always tailor suggestions to the actual findings — reference specific metrics,
 segments, or anomalies discovered. Generic suggestions ("want to know more?")
 are not helpful.
 
+---
+
 ## Edge Cases
 
 - **Ambiguous questions:** Default to L2, ask a clarifying question. "Do you
@@ -229,6 +284,8 @@ are not helpful.
 - **Non-analytical requests:** "Help me write a SQL query" or "Explain this
   chart" — handle directly without classification.
 
+---
+
 ## Anti-Patterns
 
 1. **Never run the full 18-step pipeline for an L1 question.** "How many
@@ -239,3 +296,25 @@ are not helpful.
    requested or classified as L5.
 4. **Never re-classify mid-execution without user input.** If you realize
    the question is more complex than initially classified, pause and ask.
+5. **Never include classification overhead in L1/L2 output.** The user asked
+   "how many orders?" — give them the number, not a 3-page classification report.
+
+---
+
+## Why These Changes Matter
+
+**Fast-path for L1:** Testing showed the full classification workflow adds
+~40 seconds and ~9k tokens for simple lookups. The user who asks "how many
+orders last month?" doesn't need to see pre-flight checks, scoring tables,
+and skill adherence checklists — they need the answer. Fast-path detection
+identifies obvious L1 questions and shortcuts to execution.
+
+**Silent pre-flight:** Pre-flight enrichment (entity disambiguation, corrections
+check) adds value ONLY when it finds something. Reporting "no entity matches,
+no corrections, no dataset conflict" adds noise without insight. The improved
+version only surfaces findings when they exist.
+
+**Streamlined L1/L2 output:** The classification rationale matters for L3+
+where you're asking the user to commit 10-20 minutes. For L1/L2, the decision
+is already made — just execute and deliver. Save the process documentation for
+internal tracking.

@@ -2,32 +2,32 @@
 
 ## Purpose
 Generate a beautiful, screenshot-ready HTML architecture diagram of what the
-student built — designed for posting on LinkedIn. Claude analyzes the student's
+user built — designed for posting on LinkedIn. Claude analyzes the user's
 code, understands their architecture, and generates a custom 1080x1080 visual
 in the AI Analyst Lab brand style.
 
-The student does nothing except type `/show-off-linkedin`, confirm the post,
+The user does nothing except type `/show-off-linkedin`, confirm the post,
 and hit Post on LinkedIn. Claude handles everything else — renders the image,
 drafts the caption, opens LinkedIn, and copies the caption to clipboard.
 
 ## When to Use
 - User says `/show-off-linkedin` or "LinkedIn showcase" or "share on LinkedIn"
-- End of Day 1 or Day 2 when students want to share what they built
+- After completing a significant milestone and wanting to share on LinkedIn
 
 ## Invocation
 `/show-off-linkedin` — generate a LinkedIn-ready architecture diagram
 
 ## Instructions
 
-### Step 1: Find the Student's Work
+### Step 1: Find the User's Work
 
-Same detection logic as `/show-off`. Do NOT ask the student to explain anything.
+Same detection logic as `/show-off`. Do NOT ask the user to explain anything.
 
 1. **Run `git status --short`** to see untracked (`??`) and modified (`M`) files
 2. **Run `git diff`** to see what they changed in existing files
 3. **Read the new/modified files** to understand what they actually contain
 
-If the student HAS made commits:
+If the user HAS made commits:
 4. **Run `git log --oneline --all --not --remotes`** to find local-only commits
 5. Combine committed changes with uncommitted work
 
@@ -40,25 +40,25 @@ many tests, how many lines of code they wrote.
 
 ### Step 2: Choose a Layout Pattern
 
-Based on what the student built, choose the best layout:
+Based on what the user built, choose the best layout:
 
 **Pattern A: Engine + Fan-out** (most common)
-Use when: Student built a core analysis system that produces multiple outputs.
+Use when: User built a core analysis system that produces multiple outputs.
 Structure: Input question → Engine block → Branch to output columns → File tree
 Example: "Asked a question → analysis engine → experiment design + charts + deep dives → organized output"
 
 **Pattern B: Linear Pipeline**
-Use when: Student built a sequential multi-step pipeline.
+Use when: User built a sequential multi-step pipeline.
 Structure: Numbered steps flowing top to bottom, each with a badge (agent/python).
 Example: "Data in → clean → analyze → visualize → report out"
 
 **Pattern C: Component Showcase**
-Use when: Student built several independent components (agents, skills, helpers)
+Use when: User built several independent components (agents, skills, helpers)
 that don't form a single pipeline.
 Structure: Component count chips at top → individual component boxes with details → stats.
 Example: "Built 3 agents + 2 helpers + 1 skill, each doing different things"
 
-Most students will fit Pattern A. When in doubt, use Pattern A.
+Most users will fit Pattern A. When in doubt, use Pattern A.
 
 ### Step 3: Generate the HTML
 
@@ -70,7 +70,7 @@ skill's directory. This file contains:
 
 **Generate a complete, self-contained HTML file** using the CSS from the design
 system. Copy the full `<style>` block from the reference, then write custom HTML
-in the `<div class="content">` section for this specific student's build.
+in the `<div class="content">` section for this specific user's build.
 
 #### Available CSS components
 
@@ -146,14 +146,14 @@ This produces a 2160x2160 retina PNG (2x scale of 1080x1080) — perfect for
 LinkedIn's image quality. The first run installs puppeteer and downloads
 Chromium (~280MB), subsequent runs are instant.
 
-Also copy the PNG to the student's Desktop so they can find it easily:
+Also copy the PNG to the user's Desktop so they can find it easily:
 
 ```bash
 cp showcase.png ~/Desktop/showcase.png
 ```
 
 If the render script fails (missing Node.js, Chromium issues), fall back to
-opening the HTML in the browser and telling the student to screenshot manually.
+opening the HTML in the browser and telling the user to screenshot manually.
 
 ### Step 5: Draft the LinkedIn Caption
 
@@ -167,7 +167,7 @@ built, not a LinkedIn thought piece.
 #### Rules
 
 - **Lead with what they built, not where they were.** "Built an analysis
-  pipeline that does X" not "Just attended the AI Analyst Lab bootcamp"
+  pipeline that does X" not "Just tried out AI Analyst Lab"
 - **One specific number.** 18 charts, 3 agents, 50K rows — pick the most
   impressive one
 - **No hashtags. No emojis. No "I'm thrilled to announce."**
@@ -190,7 +190,7 @@ built, not a LinkedIn thought piece.
 
 ### Step 6: Confirm Before Posting
 
-Show the student:
+Show the user:
 1. The rendered PNG (open it: `open showcase.png`)
 2. The LinkedIn caption
 
@@ -202,7 +202,7 @@ Do NOT proceed until they confirm.
 ### Step 7: Post to LinkedIn
 
 The caption goes in the URL (auto-fills the compose box). The image goes on
-the clipboard (student pastes once). One paste, one click.
+the clipboard (user pastes once). One paste, one click.
 
 ```bash
 # Put the image on the clipboard
@@ -213,12 +213,12 @@ osascript -e 'set the clipboard to (read (POSIX file "PNG_ABSOLUTE_PATH") as «c
 open "https://www.linkedin.com/feed/?shareActive=true&text=URL_ENCODED_CAPTION"
 ```
 
-Tell the student:
+Tell the user:
 
 **"LinkedIn is open with your caption. Cmd+V to paste your image, then hit Post!"**
 
 **Fallback:** If pasting the image doesn't work in LinkedIn's composer, tell
-the student: "Click the image icon in the composer and select `showcase.png`
+the user: "Click the image icon in the composer and select `showcase.png`
 from your Desktop."
 
 ### Step 8: Clean up
@@ -233,10 +233,10 @@ rm -f showcase.html showcase.png
 Don't auto-delete — ask first or just mention they can clean up.
 
 ## Rules
-1. The student should NOT have to explain what they built — Claude figures it out
+1. The user should NOT have to explain what they built — Claude figures it out
 2. Every showcase must be exactly 1080x1080 pixels
 3. Copy the FULL CSS from the design system reference — don't write custom CSS
 4. Only customize the HTML structure inside `.content`
 5. Always include: header, main architecture section, stats row, brand watermark
-6. Use real data from the student's code — never make up file names or counts
+6. Use real data from the user's code — never make up file names or counts
 7. The visual should look like a product launch page, not a homework assignment

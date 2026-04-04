@@ -1,3 +1,9 @@
+---
+name: deck-rescue
+description: |
+  Take a failing presentation deck end-to-end and produce a complete rewrite with proper narrative structure. Use this skill whenever a deck scores D or F on /deck-critique, when the user explicitly asks to "rescue", "rewrite", "redo", or "fix" an entire deck (not just individual slides), when a presentation is fundamentally broken and needs a complete overhaul, when slides lack action headlines and clear findings, when the narrative arc is missing or incoherent, when a deck has too many slides with no clear story, or when the presentation-doctor agent prescribes a full rescue. Also trigger when users say things like "this deck is a mess", "start over with this presentation", "completely rebuild these slides", "the whole deck needs to be redone", "salvage this presentation", "my slides are terrible and I need help", "rewrite my entire deck from scratch", "I need to rescue this presentation before my meeting", "fix everything wrong with these slides", or "transform this into a proper presentation". This is for comprehensive deck rehabilitation, not minor fixes — if the deck just needs a few slides improved, use /slide-transform instead. The rescue process extracts the buried story from a bad deck, builds a new Context-Tension-Resolution narrative arc, writes action headlines for every slide, declutters evidence, and ensures a specific ask at the end. Always apply when deck critique shows systemic problems across all slides, when more than half the slides score below 6/12, or when the user needs to present to stakeholders and the current deck would fail.
+---
+
 # Skill: Deck Rescue
 
 ## Purpose
@@ -33,7 +39,7 @@ The full rescue is a 7-step pipeline. If `{{CRITIQUE}}` or `{{STORY}}` are provi
 
 Confirm the grade is D or F. If the grade is B or C, suggest `/slide-transform` instead — a full rescue may be overkill.
 
-#### Step 2: Extract raw content
+#### Step 2: Extract raw content and validate match
 
 Parse every slide using `helpers/deck_parser.py` and extract ALL data, findings, and claims from the original deck — separate signal from noise:
 
@@ -48,6 +54,12 @@ Parse every slide using `helpers/deck_parser.py` and extract ALL data, findings,
 - Redundant data points (same finding stated 3 ways)
 - Decorative elements that add no information
 - Appendix data that wasn't referenced in the main deck
+
+**CRITICAL VALIDATION:** After extraction, check if the deck content matches the user's stated problem. For example:
+- User says "decide whether to invest in onboarding flow" but deck is about bugs → **MISMATCH**
+- User says "Q3 conversion dropped 12%" but deck shows Q1 churn data → **MISMATCH**
+
+**If mismatch found:** Inform the user immediately: "The deck content doesn't match your stated problem. The deck contains [X] but you mentioned [Y]. Should I: (A) Rescue using the deck's actual content, or (B) Wait while you provide the correct deck?" Do NOT proceed until clarified.
 
 Save the extracted content inventory to `working/content_inventory_{{DATE}}.md`.
 
@@ -85,7 +97,9 @@ Map the narrative arc to slides:
 This is the default 6-slide structure. Adjust based on content:
 - **Simple story (1 evidence point):** 4-5 slides
 - **Complex story (multiple evidence threads):** 6-8 slides
-- **Never exceed 8 slides** for a rescue — the original was already too long
+- **HARD LIMIT: 8 slides maximum** for any rescue — the original was already too long, don't make it long again
+
+**Slide count discipline:** If you find yourself creating 10+ slides, the story is not focused. Go back to Step 3 (story extraction) and pick a narrower narrative. A rescue should SHORTEN and FOCUS, not just reorganize.
 
 #### Step 5: Generate the new deck
 
@@ -135,14 +149,16 @@ Note: Not every original slide maps 1:1 to a new slide. Some original slides are
 
 Save to `working/before_after_{{DATE}}.md`.
 
-#### Step 7: Generate speaker notes
+#### Step 7: Generate speaker notes (REQUIRED)
+
+**This step is NOT optional.** Every rescued deck must include speaker notes for presentation readiness.
 
 For each new slide, write brief speaker notes covering:
 - **The talking track** — what to say when this slide is on screen (2-3 sentences)
 - **The transition** — how to bridge to the next slide
 - **Anticipated question** — one question the audience might ask, with a prepared answer
 
-Add speaker notes as Marp comments below each slide:
+Add speaker notes as Marp comments below each slide in the `deck_rescue_{{DATE}}.marp.md` file:
 
 ```markdown
 <!--
@@ -151,6 +167,8 @@ TRANSITION: [bridge to next slide]
 ANTICIPATED Q: [question] → [answer]
 -->
 ```
+
+**Quality check:** After writing all speaker notes, verify that EVERY slide (including the final ask slide) has complete notes. Speaker notes are what make a rescued deck presentation-ready, not just readable.
 
 ### Output Format
 

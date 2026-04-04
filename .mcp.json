@@ -6,6 +6,12 @@
       "env": {
         "SLACK_TOKEN": "${SLACK_TOKEN}"
       }
+    },
+    "google-docs": {
+      "command": "/Users/shanebutler/.claude/mcp-servers/google-docs-mcp-server/venv/bin/python",
+      "args": [
+        "/Users/shanebutler/.claude/mcp-servers/google-docs-mcp-server/google_docs_server.py"
+      ]
     }
   }
 }

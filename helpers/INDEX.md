@@ -30,4 +30,10 @@ Reusable visualization utilities based on Cole Nussbaumer Knaflic's *Storytellin
 | `helpers/chart_palette.py` | Theme-aware palettes, WCAG contrast: `apply_theme_colors()`, `palette_for_n()` |
 | `helpers/context_loader.py` | Tiered content loading with token budget: `load_tiered()`, `estimate_tokens()` |
 | `helpers/schema_migration.py` | Schema migration framework (inert in V2): `migrate_if_needed()` |
+| `helpers/gdoc_builder.py` | Google Doc builder: `build_readout()` generates .docx Analysis Readout from structured data (python-docx). Handles heading hierarchy, chart embedding, SQL code blocks, bookmark links, figure captions, confidence badge. |
+| `helpers/gdoc_narrative_parser.py` | Pipeline artifact parser: `parse_pipeline_outputs()` reads narrative, pipeline summary, validation, close-the-loop, and SQL files → returns `AnalysisData` for `build_readout()`. All files optional. |
+| `helpers/deck_parser.py` | Parses Marp markdown and Google Slides into `SlideObject` dataclass for critique/transform pipelines |
+| `helpers/postgres_helpers.py` | PostgreSQL connectivity: `get_postgres_connection()`, `execute_query()`, `test_connection()`, `list_postgres_tables()`, `get_postgres_schema()`, `get_table_row_count()`, `release_connection()`, `close_all_connections()`. Connection pooling, schema introspection, auto-quoting for mixed-case columns. |
+| `helpers/config_helpers.py` | Configuration management: `get_config()`, `get_output_dir()`, `get_analysis_path()`, `get_chart_path()`, `get_deck_path()`, `should_quote_column()`, `get_column_quoting_strategy()`, `get_default_schema()`, `ensure_output_dirs()`. Centralized access to .knowledge/config.yaml settings. |
+| `helpers/google_auth_helpers.py` | Google Workspace MCP auth diagnostics: `check_auth_status()`, `check_credentials_exist()`, `format_auth_status()`, `should_reauthorize()`, `print_auth_diagnostics()`, `ensure_auth_valid()`, `get_token_path()`, `get_credentials_path()`. Run diagnostics before any Drive/Docs operations. |
 | `helpers/examples/` | 4 before/after pairs showing bar, stacked bar, line, and multi-panel transformations |

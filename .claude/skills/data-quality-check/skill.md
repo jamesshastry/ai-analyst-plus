@@ -1,3 +1,9 @@
+---
+name: data-quality-check
+description: |
+  Validate data completeness, consistency, and coverage before any analysis begins, flagging issues with severity ratings so the analyst knows what blocks analysis vs. what to note as a caveat. Use this skill at the start of EVERY new analysis — whenever you're about to query data, explore a dataset, design an investigation, or answer an analytical question. Also apply when connecting to a new data source, when results look suspicious or unexpected, when a user mentions data quality concerns, when switching datasets, when profiling a new table, or any time before drawing conclusions from data. Trigger on phrases like "analyze this data", "explore the dataset", "what's in this data", "investigate why", "check data quality", "is the data clean", "profile this table", "validate the data", "run a quality check", "before we analyze", "what's the coverage", or any request that involves querying or analyzing data. This skill is essential for preventing misleading analysis caused by incomplete or inconsistent data — always run quality checks BEFORE making analytical conclusions. Even if the user doesn't explicitly ask for quality checks, proactively apply this whenever starting work with data to ensure findings are reliable.
+---
+
 # Skill: Data Quality Check
 
 ## Purpose
