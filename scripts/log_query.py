@@ -37,7 +37,48 @@ sys.path.insert(0, str(project_root))
 from helpers.query_log import append_entry
 
 
+def _detect_defaults():
+    """Auto-detect dialect and connection type from the active dataset manifest.
+
+    Falls back to 'unknown' (not 'duckdb') so bad defaults are obvious.
+    """
+    dialect = "unknown"
+    connection = "unknown"
+    try:
+        import yaml
+        active_path = project_root / ".knowledge" / "active.yaml"
+        if active_path.exists():
+            with open(active_path) as f:
+                active = yaml.safe_load(f) or {}
+            dataset_id = active.get("dataset_id") or active.get("active", "")
+            manifest_path = project_root / ".knowledge" / "datasets" / dataset_id / "manifest.yaml"
+            if manifest_path.exists():
+                with open(manifest_path) as f:
+                    manifest = yaml.safe_load(f) or {}
+                conn_type = manifest.get("connection_type", "")
+                if "snowflake" in conn_type.lower():
+                    dialect = "snowflake"
+                    connection = conn_type
+                elif "postgres" in conn_type.lower():
+                    dialect = "postgres"
+                    connection = conn_type
+                elif "bigquery" in conn_type.lower():
+                    dialect = "bigquery"
+                    connection = conn_type
+                elif "duckdb" in conn_type.lower() or "motherduck" in conn_type.lower():
+                    dialect = "duckdb"
+                    connection = conn_type
+                elif "csv" in conn_type.lower():
+                    dialect = "duckdb"
+                    connection = "csv"
+    except Exception:
+        pass  # If detection fails, use 'unknown' — better than wrong
+    return dialect, connection
+
+
 def main():
+    detected_dialect, detected_connection = _detect_defaults()
+
     parser = argparse.ArgumentParser(
         description="Log a SQL query to the JSONL query log."
     )
@@ -49,10 +90,10 @@ def main():
     parser.add_argument("--purpose", required=True, help="Why this query was run")
     parser.add_argument("--sql", required=True, help="SQL query text, or '-' to read from stdin")
 
-    # Optional
+    # Optional — defaults auto-detected from active dataset
     parser.add_argument("--step", type=float, default=0, help="Pipeline step number")
-    parser.add_argument("--dialect", default="duckdb", help="SQL dialect (duckdb, snowflake, bigquery, postgres)")
-    parser.add_argument("--connection", default="duckdb", help="Connection type")
+    parser.add_argument("--dialect", default=detected_dialect, help=f"SQL dialect (auto-detected: {detected_dialect})")
+    parser.add_argument("--connection", default=detected_connection, help=f"Connection type (auto-detected: {detected_connection})")
     parser.add_argument("--tables", nargs="*", default=[], help="Tables accessed")
     parser.add_argument("--columns", nargs="*", default=[], help="Columns accessed")
     parser.add_argument("--result", default="", help="Brief result summary")
