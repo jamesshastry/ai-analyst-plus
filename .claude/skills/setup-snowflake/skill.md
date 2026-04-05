@@ -43,7 +43,7 @@ Ask one question at a time:
    - Help text: "Find it in Snowsight: click your name in the bottom-left →
      click your account name under **Account** → click **View account details** →
      copy the **Account identifier** from the modal. It looks like
-     `ORGNAME-ACCOUNTNAME` (e.g., `DLMENLF-IHB08801`)."
+     `ORGNAME-ACCOUNTNAME` (e.g., `MYORG-MYACCOUNT`)."
 
 2. **Username**
    - "What username did you create during Snowflake signup?"

@@ -104,6 +104,25 @@ Assign a Layout Library type to each beat:
 Call `mcp__google-workspace__create_presentation` with `{{DECK_TITLE}}`.
 Save the returned `presentation_id` for all subsequent calls.
 
+### Step 4b: Build provenance blocks
+
+If cross-verification data is available, build provenance blocks for data stamps:
+
+```python
+from helpers.provenance_assembler import build_provenance_blocks, render_data_stamp
+
+# Build blocks from storyboard findings metadata
+blocks = build_provenance_blocks(findings_from_storyboard)
+
+# Create a lookup: finding_id -> abbreviated data stamp
+stamp_lookup = {}
+for block in blocks:
+    stamp_lookup[block["finding_id"]] = render_data_stamp(
+        block["data_stamp"], level="abbreviated"
+    )
+    # e.g., "50K | Jan-Mar 2026 | EVENTS | B (82)"
+```
+
 ### Step 5: Build batch requests using the Layout Library
 
 For each slide in the deck (in order):
@@ -128,6 +147,45 @@ For `dark` theme: replace off-white background (0.969, 0.965, 0.949) with dark n
 
 **5c. Object ID convention:** `{role}_{slidenum}` -- e.g., `hdr_3`, `ttl_3`, `hdl_3`, `bdy_3`
 All IDs must be >= 5 characters. Check every ID before proceeding.
+
+**5d. Data stamp text box (Type 3 and Type 6 finding slides):**
+
+For every slide that presents a finding (Type 3: Header + Bullets, Type 6: Chart Slide),
+add a data stamp text box at the bottom-right:
+
+```
+TEXT_BOX (data stamp)
+  objectId: "dst_{n}"
+  size:      w=4000000, h=250000
+  position:  x=4686800, y=4800000
+  text:      [abbreviated data stamp from stamp_lookup, e.g., "50K | Jan-Mar 2026 | EVENTS | B (82)"]
+  font:      8pt, muted gray ({red: 0.6, green: 0.6, blue: 0.6}), regular
+  alignment: RIGHT
+  autoFit:   AUTO_FIT
+```
+
+Only add data stamps to finding/insight slides. Skip for title slides, section dividers,
+KPI cards, recommendations, and appendix slides.
+
+**5e. Speaker notes with provenance:**
+
+For every finding slide, add speaker notes containing the full provenance:
+
+```python
+# Build speaker notes content for finding slides
+notes_text = f"""Data: {block['data_stamp']['one_liner']}
+"""
+if block.get("methodology"):
+    notes_text += f"Methodology: {block['methodology']['approach']}\n"
+if block.get("sql") and block["sql"].get("query_truncated"):
+    notes_text += f"SQL: {block['sql']['query_truncated']}\n"
+if block.get("cross_verification"):
+    cv = block["cross_verification"]
+    notes_text += f"Verification: {cv['method']} — {'Verified' if cv['verified'] else 'Unverified'} ({cv['result']})\n"
+```
+
+Insert speaker notes via `insertText` on the slide's notes page. The notes page
+object ID is `slide_{n}_notes` (derived from the slide object ID).
 
 ### Step 6: Pre-flight check (mandatory)
 

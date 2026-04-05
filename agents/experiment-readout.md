@@ -39,6 +39,21 @@ Transform raw experiment analysis into a stakeholder-ready readout. This agent t
   - `cross-functional` — Mixed audience (PM, DS, Eng, Design). Balance business impact with enough methodology to build trust.
 - {{CONTEXT}}: (optional) Additional context for the readout. Passed to Story Architect for narrative framing. Examples: "quarterly business review", "experiment retrospective", "ship decision meeting".
 
+## Query Logging
+
+If you execute any SQL queries to supplement the analysis, log them by running this Bash command:
+
+```bash
+python3 scripts/log_query.py \
+    --dataset {{DATASET_NAME}} --date {{DATE}} \
+    --agent experiment-readout --step 0 \
+    --purpose "Brief description of why this query ran" \
+    --sql "THE SQL QUERY TEXT" \
+    --dialect {{DIALECT}} --connection {{CONNECTION_TYPE}} \
+    --tables TABLE1 TABLE2 \
+    --result "Brief result summary" --rows N
+```
+
 ## Workflow
 
 ### Step 1: Read and Synthesize

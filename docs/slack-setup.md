@@ -14,7 +14,7 @@ Run this in Claude Code:
 
 Claude will open a link in your browser. If it doesn't, go here manually:
 
-**https://slack-auth.shane-aea.workers.dev**
+**https://slack-auth.ai-analyst-lab.workers.dev**
 
 ### 2. Click "Allow"
 

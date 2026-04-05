@@ -101,6 +101,7 @@ condition matches -- you do not need to be asked.
 | Log Correction | `.claude/skills/log-correction/skill.md` | Invoked as `/log-correction` — deliberate correction logging |
 | Archaeology | `.claude/skills/archaeology/skill.md` | Before writing SQL — retrieve proven patterns from query archaeology |
 | Business | `.claude/skills/business/skill.md` | Invoked as `/business` — browse organization knowledge (glossary, metrics, products, teams) |
+| Notion Export | `.claude/skills/notion-export/skill.md` | Exporting analysis to Notion — page structure, chart embedding, data stamps, provenance toggles, Analysis Gallery |
 | Notion Ingest | `.claude/skills/notion-ingest/skill.md` | Invoked as `/notion-ingest` — crawl Notion workspace to extract business context |
 | Runs | `.claude/skills/runs/skill.md` | Invoked as `/runs` — list, inspect, compare, and clean up pipeline runs |
 | Kickoff | `.claude/skills/kickoff/skill.md` | Invoked as `/kickoff` — introduce yourself to the community on Slack |
@@ -156,15 +157,17 @@ When asked to analyze data, follow this process:
    (Use Hypothesis agent)
 4. **Explore the data** -- What is in this dataset? What is the quality? Any
    gaps? (Use Data Explorer agent + Data Quality Check skill)
-4.5. **Source tie-out** -- Verify data loaded correctly by comparing pandas
-   direct-read vs DuckDB SQL on foundational metrics (row counts, nulls,
-   numeric sums). HALT if any mismatch. (Use Source Tie-Out agent)
 5. **Analyze** -- Segment, funnel, decompose, trend -- whatever the question
    requires. Always run the segment-first Simpson's Paradox check before
-   concluding. (Use Descriptive Analytics or Overtime/Trend agent)
+   concluding. Every SQL query is logged to `working/query_log_*.jsonl`.
+   (Use Descriptive Analytics or Overtime/Trend agent)
 6. **Investigate root cause** -- If analysis found an anomaly or unexpected
    pattern, drill down iteratively through dimensions until reaching a specific,
    actionable root cause. (Use Root Cause Investigator agent)
+6.5. **Cross-verify findings** -- Re-derive key findings through alternative
+   calculations. Type A boundary checks (zero queries), Types B-D re-computation
+   checks (max 20 queries). Produces confidence scores and provenance records.
+   HALT if confidence < 8/15. (Use Cross-Verification agent)
 7. **Validate** -- Check your SQL. Verify the numbers add up. Cross-reference.
    Check guardrail metrics for any positive findings.
    (Use Validation agent + Triangulation skill + Guardrails Awareness skill)
@@ -345,6 +348,12 @@ These are non-negotiable. They protect analytical quality.
     commit it. When testing connections, source credentials from environment
     variables, never inline.
 
+17. **Log every data-touching query.** After every SQL query — MCP, inline
+    Python, or any other method — log it via `python3 scripts/log_query.py`
+    with `--dataset`, `--agent`, `--purpose`, `--sql`, and `--result`. Applies
+    inside AND outside the pipeline (`--agent ad-hoc` for one-off queries).
+    The validation agent checks coverage and flags gaps.
+
 ---
 
 ## When Things Go Wrong
@@ -354,7 +363,7 @@ These are non-negotiable. They protect analytical quality.
 | MotherDuck won't connect | Fall back to local DuckDB/CSVs automatically (see Data Source Fallback). Inform the user. |
 | SQL query errors | Simplify the query. If JOIN fails, try subquery. If aggregation fails, check GROUP BY. Show the user what went wrong. |
 | Chart won't render | Save the data table as fallback. Try a simpler chart type. If matplotlib fails entirely, produce a text summary. |
-| Source tie-out fails | HALT. Do not proceed with analysis. Show the mismatch. Ask: "Should we investigate the data issue or proceed with caution?" |
+| Cross-verification fails (score < 8) | HALT. Show which claims failed verification and why. Ask: "Should we investigate the failing checks or proceed with caution?" |
 | Context getting long | After completing the analysis phase (steps 1-8), check conversation length. If >15 queries were run, save all working files and suggest: "/resume-pipeline to continue in a fresh session." |
 | Agent produces poor output | Re-read the agent file and re-run with more specific inputs. If it fails a second time, switch to manual collaborative mode with the user. |
 | User's data doesn't match expected schema | Agent references a column/table that doesn't exist — check the data inventory, adjust queries to match the actual schema. |
@@ -367,7 +376,7 @@ Choose your Claude Code session model based on your task:
 
 | Use Case | Recommended Model | Notes |
 |----------|------------------|-------|
-| Quick data pull or single chart | Sonnet | Steps 1, 4, 4.5, answer |
+| Quick data pull or single chart | Sonnet | Steps 1, 4, answer |
 | Deep analysis (no deck) | Sonnet or Opus | Steps 1-8 |
 | Full pipeline (analysis + deck) | Opus | All 19 steps — reasoning-intensive |
 | Learning / exploring data | Sonnet | Ad hoc questions, profiling |

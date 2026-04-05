@@ -17,7 +17,9 @@ pipeline outputs into ready-to-share deliverables.
 `/export data` — export analysis data tables as CSV
 `/export gdoc` — create a Google Doc with full Analysis Readout (charts, SQL, bookmarks)
 `/export docx` — generate a local .docx Word document (no Google upload)
-`/export all` — generate all text formats + data (does NOT include gdoc — use `/export gdoc` separately)
+`/export notion` — export analysis to a Notion page (with charts, data stamps, provenance toggles)
+`/export receipt` — generate full analysis receipt (Reproduce-level audit trail)
+`/export all` — generate all text formats + data (does NOT include gdoc, notion, or receipt — use `/export gdoc`, `/export notion`, and `/export receipt` separately)
 
 ## Instructions
 
@@ -62,6 +64,7 @@ pipeline outputs into ready-to-share deliverables.
 - Keep under 300 words, thread-friendly format
 - Use emoji sparingly (checkmarks, arrows only)
 - Include: key metric, direction, and recommended action
+- Include a data stamp for each key finding (abbreviated format): `50K | Jan-Mar 2026 | EVENTS | B (82)`
 - **Content source:** Extract directly from the source narrative — use exact numbers and findings. Do not reinterpret or add context not present in the source.
 - Do not create multiple versions (Full/Short/Executive) — produce one concise update that works for team channels
 - **Output file:** Write to `outputs/slack_update_{DATE}.md` where {DATE} is today's date in YYYY-MM-DD format (e.g., `slack_update_2026-04-04.md`)
@@ -248,11 +251,60 @@ state tracking. Report the .docx path to the user.
 Say: "Word document saved at `{docx_path}`. You can upload it to Google Drive
 manually or share it directly."
 
+**Format: notion**
+
+Creates a Notion page from the analysis with charts, data stamps, and provenance toggle
+blocks. Follows the Notion Export skill (`.claude/skills/notion-export/skill.md`).
+
+#### Step 0: Notion Auth Check
+Check if `mcp__notion__*` tools are accessible. If not: "Notion MCP is not configured."
+
+#### Generation
+Invoke the `notion-export` agent with:
+- `NARRATIVE`: latest narrative
+- `CHART_FILES`: chart PNGs from `outputs/charts/`
+- `DATASET`: active dataset
+- `PROVENANCE_BLOCKS`: from cross-verification (if available)
+- `ANALYSIS_RECEIPT`: receipt path (if Tier 3)
+
+The agent handles Analysis Gallery detection, chart hosting, toggle blocks, and self-check.
+
+Output: `outputs/notion_url_{{DATASET}}_{{DATE}}.txt`
+
+Say: "Analysis exported to Notion: {url}. {N} findings with charts and provenance."
+
+**Format: receipt**
+
+Generates a full analysis receipt — the Reproduce-level audit trail. Contains every
+query, methodology decision, cross-verification result, and confidence factor breakdown.
+
+#### Prerequisites
+- Query log must exist (`working/query_log_*.jsonl`)
+- Validation report must exist (`outputs/validation_*.md`)
+- If neither exists: "Cannot generate receipt. Run a full analysis first."
+
+#### Tier 3 Pre-Export Gate
+If the analysis was run at Tier 3, the receipt is generated automatically at step 18.5.
+Check if `outputs/analysis_receipt_*.md` already exists:
+- If exists and source unchanged: "Receipt already generated at {path}. Open it, or force re-create?"
+- If exists but source changed: Regenerate
+
+#### Generation
+Invoke the `receipt-generator` agent with:
+- `QUERY_LOG`: most recent query log JSONL
+- `VALIDATION_REPORT`: most recent validation report
+- `CROSS_VERIFICATION_REPORT`: cross-verification YAML (if available)
+- `PIPELINE_STATE`: pipeline state JSON (if available)
+
+Output: `outputs/analysis_receipt_{{DATASET_NAME}}_{{DATE}}.md`
+
+Say: "Analysis receipt generated at `{path}`. Contains {N} findings, {N} queries, and full validation breakdown."
+
 **Format: all**
 - Run email + slack + brief + data sequentially
 - Skip slides if already exists
-- Does NOT include gdoc (external resource creation must be explicit)
-- After completion, suggest: "Want to also create a Google Doc? Run `/export gdoc`."
+- Does NOT include gdoc or receipt (external resource creation must be explicit)
+- After completion, suggest: "Want to also create a Google Doc? Run `/export gdoc`. Need a full audit trail? Run `/export receipt`."
 
 ### Step 3: Post-Export
 - List all exported files with paths
@@ -265,7 +317,7 @@ manually or share it directly."
 3. Adapt detail level to format (email = high-level, brief = medium, data = raw)
 4. Apply Stakeholder Communication skill for all text outputs
 5. If the analysis had confidence scores, include them in brief format
-6. The `gdoc` format creates an external Google resource — never include it in `/export all`
+6. The `gdoc`, `notion`, and `receipt` formats create external resources or audit trails — never include them in `/export all`
 7. Always generate the .docx before attempting Google upload (local fallback)
 8. If `outputs/gdoc_export.yaml` shows unchanged source, offer to open existing doc
 

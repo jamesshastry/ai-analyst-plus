@@ -369,3 +369,104 @@ upload_file_to_drive(file_path: str, convert_to_google_doc: bool) → {"file_id"
 - inspect_doc_structure
 
 If you need these features, use the .docx → Google Docs workflow (Section A).
+
+---
+
+## Section G: Citation Pattern & Provenance Appendix
+
+When creating analysis documents with findings, embed provenance data at three levels:
+
+### Level 1: Data Stamps (Always Present)
+
+Every finding paragraph must include a data stamp inline, immediately after the finding title or key claim:
+
+```
+**Finding 1: Mobile converts at half the rate of desktop**
+[50K rows | Jan-Mar 2026 | EVENTS | Confidence: B (82/100)]
+```
+
+Data stamps are built via `helpers/provenance_assembler.py`:
+```python
+from helpers.provenance_assembler import build_data_stamp, render_data_stamp
+
+stamp = build_data_stamp(
+    row_count=50000,
+    date_range="Jan-Mar 2026",
+    primary_table="EVENTS",
+    confidence_grade="B",
+    confidence_score=82,
+)
+# stamp["one_liner"] = "[50K rows | Jan-Mar 2026 | EVENTS | Confidence: B (82/100)]"
+```
+
+In `.docx` via `gdoc_builder.py`, data stamps render as a small italic paragraph below each finding heading. In direct MCP mode, insert as body text with 9pt font and muted gray color.
+
+### Level 2: Citation Links + Provenance Appendix
+
+For Tier 2+ analyses, add citation markers and a provenance appendix.
+
+**Two-pass approach:**
+
+**Pass 1 — Build content:**
+1. For each finding, insert a citation marker `[F1]` after the data stamp
+2. At the end of the document (before any existing Appendix), add:
+   ```
+   H2: Provenance Appendix
+
+   H3: F1: Mobile converts at half the rate
+   **Data:** [50K rows | Jan-Mar 2026 | EVENTS | Confidence: B (82/100)]
+   **Methodology:** segmented comparison, COUNT by device
+   **SQL:**
+   ```sql
+   SELECT device, COUNT(*) FROM events GROUP BY device
+   ```
+   **Cross-verification:** Type B: Parts-to-whole — Verified (PASS, diff 0.2%)
+
+   H3: F2: ...
+   ```
+
+**Pass 2 — Link citations (`.docx` workflow only):**
+After building the `.docx` via `gdoc_builder.py`, the builder automatically creates:
+- Bookmark anchors on each `H3` in the Provenance Appendix (named `F1`, `F2`, etc.)
+- Hyperlinks from `[F1]` markers in the body to the corresponding bookmark
+
+For direct MCP mode, citation links are not possible (the API doesn't support internal bookmarks). Use the `[F1]` text markers without hyperlinks — the reader can scroll to the appendix.
+
+### Level 3: Full Receipt Link
+
+For Tier 3 analyses, add a link to the analysis receipt at the bottom of the document:
+
+```
+H2: Analysis Receipt
+Full audit trail with all queries, methodology, and reproducibility data:
+→ outputs/analysis_receipt_{DATASET}_{DATE}.md
+```
+
+### Building Provenance Blocks
+
+All provenance data comes from `helpers/provenance_assembler.py`:
+
+```python
+from helpers.provenance_assembler import build_provenance_blocks, render_provenance_appendix
+
+blocks = build_provenance_blocks(
+    findings=findings_list,          # from narrative parser
+    confidence_result=confidence,    # from validation
+    cross_verification=cv_data,      # from cross-verification YAML
+    connection_type="snowflake",
+    database="ANALYTICS",
+)
+
+# Render each block as markdown for the appendix
+for block in blocks:
+    appendix_md = render_provenance_appendix(block)
+```
+
+### Checklist for Citation-Enabled Documents
+
+- [ ] Every finding has a data stamp (even without citation links)
+- [ ] Citation markers `[F1]`, `[F2]` appear after each data stamp (Tier 2+)
+- [ ] Provenance Appendix section exists with one H3 per finding (Tier 2+)
+- [ ] Each appendix entry has: data stamp, methodology, SQL (if available), cross-verification (if available)
+- [ ] Bookmark links resolve correctly in `.docx` output (Tier 2+)
+- [ ] Receipt link present at document end (Tier 3 only)

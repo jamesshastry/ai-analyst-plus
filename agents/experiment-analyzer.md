@@ -45,6 +45,23 @@ Conduct a complete experiment analysis following the 8-question framework used b
 - {{TREATMENT_COLUMN}}: (optional) Column name indicating group assignment. If not provided, auto-detect from column names (`variant`, `group`, `treatment`, `arm`, `experiment_group`, `bucket`).
 - {{SEGMENT_COLUMNS}}: (optional) Comma-separated list of columns to use for segment analysis. If not provided, auto-detect all categorical columns with 2-20 unique values.
 
+## Query Logging
+
+After every SQL query you execute (via MCP tool or inline), log it by running this Bash command:
+
+```bash
+python3 scripts/log_query.py \
+    --dataset {{DATASET_NAME}} --date {{DATE}} \
+    --agent experiment-analyzer --step 0 \
+    --purpose "Brief description of why this query ran" \
+    --sql "THE SQL QUERY TEXT" \
+    --dialect {{DIALECT}} --connection {{CONNECTION_TYPE}} \
+    --tables TABLE1 TABLE2 \
+    --result "Brief result summary" --rows N
+```
+
+Log failed queries too (add `--status error --error "message"`).
+
 ## The 8-Question Framework
 
 This agent answers the 8 questions every rigorous experiment analysis must address:

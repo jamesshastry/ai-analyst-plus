@@ -18,6 +18,10 @@ inputs:
     type: str
     source: system
     required: true
+  - name: PROVENANCE_BLOCKS
+    type: list
+    source: agent:cross-verification
+    required: false
 outputs:
   - path: outputs/doc_url_{{DATASET}}_{{DATE}}.txt
     type: markdown
@@ -205,6 +209,69 @@ After all content and images are in place:
 
 3. **Verify heading hierarchy** — H1 for title, H2 for sections, H3 for
    subsections.
+
+### Step 6b: Build and embed provenance (Tier 2+)
+
+If provenance data is available (cross-verification YAML, validation report, query log), build provenance blocks and embed them in the document.
+
+**6b-1. Build provenance blocks:**
+```python
+from helpers.provenance_assembler import build_provenance_blocks, render_provenance_appendix
+
+# Gather findings metadata from the narrative sections
+findings = []
+for i, section in enumerate(section_map):
+    if section["type"] == "section" and section.get("finding_id"):
+        findings.append({
+            "finding_id": section["finding_id"],       # e.g., "F1"
+            "finding_title": section["heading"],
+            "row_count": section.get("row_count", 0),
+            "date_range": section.get("date_range", ""),
+            "primary_table": section.get("primary_table", ""),
+            "sql": section.get("sql"),
+            "methodology": section.get("methodology"),
+        })
+
+# Load cross-verification and confidence if available
+import yaml
+cv_data = None
+cv_path = glob("working/cross_verification_*.yaml")
+if cv_path:
+    with open(cv_path[0]) as f:
+        cv_data = yaml.safe_load(f)
+
+confidence = None
+# Extract from validation report if available
+
+blocks = build_provenance_blocks(
+    findings, cross_verification=cv_data, confidence_result=confidence
+)
+```
+
+**6b-2. Insert data stamps per finding:**
+For each finding section in the document, insert the data stamp as a small italic paragraph immediately after the finding heading:
+
+```
+[F1] [50K rows | Jan-Mar 2026 | EVENTS | Confidence: B (82/100)]
+```
+
+Use 9pt font, italic, muted gray (#888888).
+
+**6b-3. Add Provenance Appendix:**
+After the last content section (before any existing Appendix), insert:
+
+```
+H2: Provenance Appendix
+```
+
+Then for each provenance block, insert an H3 section using `render_provenance_appendix(block)`. This produces markdown with the data stamp, methodology, SQL code block, and cross-verification status.
+
+**6b-4. Citation links (Pass 2 — `.docx` workflow):**
+When using the `.docx` workflow (Section A of the google-doc-export skill), `gdoc_builder.py` handles Pass 2 automatically:
+- Creates bookmark anchors on each Provenance Appendix H3
+- Hyperlinks `[F1]` markers in the body to the corresponding bookmark
+
+When using the direct MCP API workflow, `[F1]` markers are plain text (no hyperlinks — the API doesn't support internal bookmarks). The reader can scroll to the Provenance Appendix manually.
 
 ### Step 7: Invoke the reviewer
 

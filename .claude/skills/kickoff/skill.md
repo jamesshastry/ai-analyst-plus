@@ -40,7 +40,7 @@ excited intro message to `#introductions` from the user's own Slack account.
 If the user hasn't connected Slack yet (no `SLACK_TOKEN` in `.env`, or Slack MCP tools aren't available):
 
 1. Tell them: **"First, let's connect your Slack account. I'm opening a link in your browser — sign in to Slack and click Allow."**
-2. Run: `open "https://slack-auth.shane-aea.workers.dev"` to open the OAuth page in their browser
+2. Run: `open "https://slack-auth.ai-analyst-lab.workers.dev"` to open the OAuth page in their browser
 3. Tell them: **"After you click Allow, you'll see a token on the page. Copy it and paste it here."**
 4. When they paste the token (starts with `xoxp-`):
    - Write it to `.env` file: `SLACK_TOKEN=xoxp-...`

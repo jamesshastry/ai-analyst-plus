@@ -186,6 +186,28 @@ heading is orphaned.
 Severity: WARNING. AUTO-FIX: delete the orphaned heading paragraph and its
 trailing empty paragraph.
 
+#### Check 10: Citation Link Integrity (Provenance)
+
+**Rule:** If the document contains a Provenance Appendix (H2 heading "Provenance Appendix"):
+- Every finding section in the body must have a citation marker `[F1]`, `[F2]`, etc.
+- Every citation marker must have a corresponding H3 entry in the Provenance Appendix
+- Every Provenance Appendix H3 must be referenced by at least one citation marker in the body
+- Data stamps must be present after each finding heading (italic, muted text)
+
+**How to check:** From the markdown output:
+1. Find all `[F{N}]` markers in the body (above the Provenance Appendix)
+2. Find all H3 headings under the Provenance Appendix (format: `### F{N}: ...`)
+3. Cross-reference: every body marker should have an appendix entry, and vice versa
+4. Check that data stamps (text matching `[{N} rows | ... | ...]`) appear near each finding
+
+**Common issues:**
+- Citation marker `[F3]` in body but no `### F3:` in appendix (orphaned reference)
+- Appendix entry `### F2:` exists but no `[F2]` in body (unreferenced appendix entry)
+- Finding section has no data stamp (missing provenance)
+- Data stamp present but no citation marker (Tier 1 only — acceptable if no appendix)
+
+Severity: FAIL for orphaned references or unreferenced appendix entries. WARNING for missing data stamps.
+
 ---
 
 ### Step 3: Classify each issue

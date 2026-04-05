@@ -118,9 +118,9 @@ If no state file exists, scan `working/` and `outputs/` for artifacts:
 | question-framing | `question_brief_*.md` | `outputs/` |
 | hypothesis | `hypothesis_doc_*.md` | `outputs/` |
 | data-explorer | `data_inventory_*.md` | `outputs/` |
-| source-tieout | `tieout_*.md` | `working/` |
 | descriptive-analytics | `analysis_report_*.md` | `outputs/` |
 | root-cause-investigator | `investigation_*.md` | `working/` |
+| cross-verification | `cross_verification_*.md` + `cross_verification_*.yaml` | `working/` |
 | validation | `validation_*.md` | `outputs/` |
 | opportunity-sizer | `sizing_*.md` | `working/` |
 | story-architect | `storyboard_*.md` | `working/` |
@@ -129,6 +129,15 @@ If no state file exists, scan `working/` and `outputs/` for artifacts:
 | visual-design-critic | `design_review_*.md` | `working/` |
 | storytelling | `narrative_*.md` | `outputs/` |
 | deck-creator | `deck_*.md` | `outputs/` |
+| receipt-generator | `analysis_receipt_*.md` | `outputs/` |
+
+**Additional artifacts to scan:**
+| Artifact | File Pattern | Directory | Notes |
+|----------|-------------|-----------|-------|
+| Query log | `query_log_*.jsonl` | `working/` | Append-only; presence confirms data-touching agents ran |
+| Provenance | `provenance_*.yaml` | `working/` | Produced by cross-verification agent |
+
+**Legacy artifact migration:** If `tieout_*.md` artifacts are found in `working/` but no `cross_verification_*.md` exists, mark the old source-tieout as `completed_legacy`. The pipeline can proceed — cross-verification is not required for pre-migration runs. Print: `"Found legacy source-tieout artifacts. Cross-verification was not available for this run. Proceeding without re-verification."`
 
 Walk the list top to bottom. If an artifact exists and looks complete (not empty, no "NEEDS REVISION" markers), mark that agent as completed.
 

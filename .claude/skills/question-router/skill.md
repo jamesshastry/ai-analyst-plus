@@ -234,11 +234,13 @@ The user can:
 When routed to L3+, the Question Router hands off to the appropriate agents
 by setting the entry point in the Default Workflow:
 
-| Level | Entry Point | Exit Point |
-|-------|-------------|------------|
-| L3 | Step 1 (Frame) | Step 7 (Validate) — present findings inline |
-| L4 | Step 1 (Frame) | Step 8 (Size) — present findings inline |
-| L5 | Step 1 (Frame) | Step 18 (Close the Loop) — full deck |
+| Level | Entry Point | Exit Point | Validation Tier |
+|-------|-------------|------------|-----------------|
+| L1 | Direct query | Answer inline | Tier 1 only (always-on) |
+| L2 | Direct query + chart | Answer inline | Tier 1 only (always-on) |
+| L3 | Step 1 (Frame) | Step 7 (Validate) — present findings inline | Tier 1 always + Tier 2 offered (CP 2.1) |
+| L4 | Step 1 (Frame) | Step 8 (Size) — present findings inline | Tier 2 default (CP 2.1 menu) |
+| L5 | Step 1 (Frame) | Step 18 (Close the Loop) — full deck | Tier 2 default, Tier 3 available (CP 2.1 menu) |
 
 ---
 

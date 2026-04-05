@@ -226,14 +226,16 @@ After completing all 4 layers, calculate the overall confidence score:
 
 **Formula:**
 ```
-Raw Score = (Layer1 + Layer2 + Layer3 + Layer4) + Sample Size Bonus
+Raw Score = (Layer1 + Layer2 + Layer3 + Layer4) + Sample Size Bonus + Cross-Verification + Reproducibility
 Sample Size Bonus:
   - n ≥ 10,000: +10 points
   - n ≥ 1,000: +5 points
   - n < 1,000: +0 points
+Cross-Verification: 0-10 points (from Layer 5, if available)
+Reproducibility: 0-5 points (from Layer 6, if available)
 
-Total Possible: 70 points
-Normalized Score: (Raw Score / 70) * 100
+Total Possible: 85 points (70 if cross-verification/reproducibility not available)
+Normalized Score: (Raw Score / Applicable Max) * 100
 ```
 
 **Grade Assignment:**
@@ -354,7 +356,9 @@ Present validation results in this format:
 | Business Rules | X | 15 | [STATUS] | [reason] |
 | Simpson's Paradox | X | 15 | [STATUS] | [reason] |
 | Sample Size | X | 10 | [STATUS] | [n rows] |
-| **Total** | X | 70 | [GRADE] | [Normalized: Y/100] |
+| Cross-Verification | X | 10 | [STATUS] | [method + result] |
+| Reproducibility | X | 5 | [STATUS] | [variance detail] |
+| **Total** | X | 85 | [GRADE] | [Normalized: Y/100] |
 
 ---
 
@@ -405,6 +409,41 @@ Present validation results in this format:
 
 **Bottom Line:** [Summary of state and next steps]
 ```
+
+---
+
+### Layer 5: Cross-Verification Integration (0-10 points)
+
+When cross-verification results are available (from the cross-verification agent), incorporate them into the confidence assessment:
+
+**What Cross-Verification Checks:**
+- Type A: Boundary checks (non-negative, percentage bounds, date bounds)
+- Type B: Parts-to-whole (segments sum to total within tolerance)
+- Type C: Ratio recompute (recalculate ratios from raw components)
+- Type D: Algebraic identity (verify mathematical relationships hold)
+
+**Integration:**
+1. Read cross-verification YAML from `working/cross_verification_*.yaml`
+2. For each verified claim, carry the verification status (PASS/WARN/FAIL) into the confidence scoring
+3. Factor 8 (Cross-Verification) contributes 0-10 points to the confidence score
+4. A FAIL on any Type A boundary check is an automatic BLOCKER
+
+**Scoring:**
+- 10 points: All applicable checks PASS
+- 7 points: All PASS except Type A only (boundary checks only, no deeper verification)
+- 4 points: Any WARN results
+- 0 points: Any FAIL result or no cross-verification data available
+
+### Layer 6: Reproducibility Check (0-5 points)
+
+When reproducibility results are available, incorporate them:
+
+**What it checks:** Same query run 3x produces identical results (for deterministic sources) or within tolerance (for live warehouses).
+
+**Scoring:**
+- 5 points: All queries reproduce exactly (or within warehouse tolerance)
+- 3 points: Minor variance detected but within acceptable tolerance
+- 0 points: Significant variance detected or reproducibility not checked
 
 ---
 

@@ -400,6 +400,51 @@ insertion. The Google Slides API does NOT accept `data:image/...` data URIs.
 
 ---
 
+## Section D-1: Data Stamp & Speaker Notes Provenance
+
+### Data Stamp Text Box
+
+For finding slides (Type 3 and Type 6), add a data stamp text box at the bottom-right
+corner. This provides at-a-glance provenance for every claim.
+
+```
+TEXT_BOX (data stamp)
+  objectId: "dst_{n}"
+  size:      w=4000000, h=250000
+  position:  x=4686800, y=4800000
+  text:      [abbreviated stamp: "50K | Jan-Mar 2026 | EVENTS | B (82)"]
+  font:      8pt, {red: 0.6, green: 0.6, blue: 0.6}, regular
+  alignment: RIGHT
+  autoFit:   AUTO_FIT
+```
+
+**When to include:** Any slide presenting a specific data finding (insight headline + evidence).
+**When to skip:** Title slides, section dividers, KPI dashboards, recommendation lists, appendix.
+
+The abbreviated data stamp format is: `{row_count} | {date_range} | {primary_table} | {grade} ({score})`
+
+Built via `helpers/provenance_assembler.py`:
+```python
+from helpers.provenance_assembler import render_data_stamp
+stamp_text = render_data_stamp(block["data_stamp"], level="abbreviated")
+```
+
+### Speaker Notes Provenance Format
+
+For finding slides, speaker notes should contain full provenance so the presenter
+can answer "where does this number come from?" questions:
+
+```
+Data: [145K rows | Jan-Mar 2026 | ORDERS | Confidence: B (82/100)]
+Methodology: segmented comparison, SUM by segment
+SQL: SELECT segment, SUM(revenue) FROM orders GROUP BY segment
+Verification: Type B: Parts-to-whole — Verified (PASS, diff 0.2%)
+```
+
+Insert via `insertText` on the slide's notes page object.
+
+---
+
 ## Section D: Reference Decks
 
 To verify design decisions, use decks previously created by this pipeline as visual
