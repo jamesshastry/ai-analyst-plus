@@ -83,6 +83,7 @@ condition matches -- you do not need to be asked.
 | Question Router | `.claude/skills/question-router/skill.md` | Every analytical request — classify L1-L5 and route to appropriate response path |
 | First-Run Welcome | `.claude/skills/first-run-welcome/skill.md` | First session (no user profile) — adaptive onboarding based on available data |
 | Data Profiling | `.claude/skills/data-profiling/skill.md` | After connecting a new dataset — deep-profile schema, distributions, temporal patterns, completeness, anomalies |
+| Distribution Profiler | `.claude/skills/distribution-profiler/skill.md` | Profile a column's statistical distribution — identification, valid summary stats, recommended tests, A/B testing guidance, common traps |
 | Explore | `.claude/skills/explore/skill.md` | Invoked as `/explore` — quick interactive data exploration without full pipeline |
 | Export | `.claude/skills/export/skill.md` | Invoked as `/export {format}` — export results as slides, email, slack, brief, data, gdoc (Google Doc with charts + SQL), or docx (local Word file) |
 | Connect Data | `.claude/skills/connect-data/skill.md` | Invoked as `/connect-data` — add a new dataset connection |
