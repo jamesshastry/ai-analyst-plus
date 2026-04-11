@@ -653,3 +653,113 @@ agents:
     outputs:
       - working/story_extraction_{{DATE}}.md
     knowledge_context: []
+
+  # ── Experiment Platform (OpenXP) ─────────────────────────────────
+
+  - name: experiment-interpreter
+    file: agents/experiment-interpreter.md
+    pipeline_step: null
+    depends_on:
+      - experiment-analyzer
+    inputs:
+      - ANALYSIS_RESULTS
+      - EXPERIMENT_CONFIG
+    outputs:
+      - working/experiment_interpretation_{{DATE}}.md
+    knowledge_context: []
+
+  - name: experiment-monitor
+    file: agents/experiment-monitor.md
+    pipeline_step: null
+    depends_on:
+      - experiment-designer
+    inputs:
+      - EXPERIMENT_CONFIG
+      - CURRENT_DATA
+    outputs:
+      - working/monitoring_update_{{DATE}}.md
+    knowledge_context: []
+
+  # ── Causal Inference (OpenCausalInf) ─────────────────────────────
+
+  - name: causal-method-selector
+    file: agents/causal-method-selector.md
+    pipeline_step: null
+    depends_on: []
+    inputs:
+      - CAUSAL_QUESTION
+      - DATA_DESCRIPTION
+    outputs:
+      - working/causal_method_selection.md
+    knowledge_context: []
+
+  - name: causal-analyzer
+    file: agents/causal-analyzer.md
+    pipeline_step: null
+    depends_on:
+      - causal-method-selector
+    inputs:
+      - METHOD
+      - DATA
+      - OUTCOME_COL
+      - TREATMENT_COL
+      - COVARIATES
+    outputs:
+      - working/causal_analysis_results.json
+    knowledge_context: []
+
+  - name: causal-assumption-checker
+    file: agents/causal-assumption-checker.md
+    pipeline_step: null
+    depends_on:
+      - causal-analyzer
+    inputs:
+      - METHOD
+      - DATA
+      - ANALYSIS_RESULTS
+    outputs:
+      - working/assumption_report.md
+    knowledge_context: []
+
+  - name: causal-sensitivity
+    file: agents/causal-sensitivity.md
+    pipeline_step: null
+    depends_on:
+      - causal-analyzer
+    inputs:
+      - METHOD
+      - ANALYSIS_RESULTS
+      - MATCHED_DATA
+    outputs:
+      - working/sensitivity_report.md
+    knowledge_context: []
+
+  - name: causal-interpreter
+    file: agents/causal-interpreter.md
+    pipeline_step: null
+    depends_on:
+      - causal-analyzer
+      - causal-assumption-checker
+      - causal-sensitivity
+    inputs:
+      - ANALYSIS_RESULTS
+      - ASSUMPTION_REPORT
+      - SENSITIVITY_REPORT
+    outputs:
+      - working/causal_interpretation.md
+    knowledge_context: []
+
+  - name: causal-report-generator
+    file: agents/causal-report-generator.md
+    pipeline_step: null
+    depends_on:
+      - causal-interpreter
+    inputs:
+      - CAUSAL_QUESTION
+      - ANALYSIS_RESULTS
+      - ASSUMPTION_REPORT
+      - SENSITIVITY_REPORT
+      - INTERPRETATION
+    outputs:
+      - reports/causal_report_{{DATE}}.md
+    knowledge_context: []

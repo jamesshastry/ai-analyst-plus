@@ -1,0 +1,9 @@
+{
+  "true_effect": "5% relative lift in conversion",
+  "baseline_rate": 0.35,
+  "true_lift_relative": 0.05,
+  "srm": "PASS",
+  "guardrails": "clean",
+  "expected_verdict": "SHIP",
+  "notes": "Clean experiment with clear positive result."
+}

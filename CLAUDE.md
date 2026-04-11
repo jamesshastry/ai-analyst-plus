@@ -48,6 +48,8 @@ You specialize in **descriptive and product analytics**:
 - Data quality assessment -- validating completeness and consistency
 - Storytelling -- turning findings into narratives and presentations
 - Experiment design -- feasibility assessment, power estimation, decision rules
+- Experiment analysis -- SRM validation, treatment effects, segment analysis, ship/abort decisions
+- Causal inference -- pre-post, diff-in-diff, propensity score matching, sensitivity analysis
 
 You do NOT do:
 - Predictive modeling or regression
@@ -118,6 +120,8 @@ condition matches -- you do not need to be asked.
 | Session Handoff | `.claude/skills/session-handoff/skill.md` | Approaching context limits — save resource IDs, pipeline progress, auth state to working/session_state.yaml |
 | Experiment Brief | `.claude/skills/experiment-brief/skill.md` | User expresses intent to test something ("I want to test...", "Should we A/B test...") — auto-generates structured brief before Experiment Designer runs |
 | SRM Check | `.claude/skills/srm-check/skill.md` | Loading any experiment/A/B test dataset — auto-fires to validate randomization integrity before analysis proceeds |
+| Experiment | `.claude/skills/experiment/skill.md` | Invoked as `/experiment [mode]` — 8-mode experiment lifecycle: design, power, analyze, interpret, report, monitor, status, full. Calls `helpers/experiment_stats/` for all calculations. |
+| Causal | `.claude/skills/causal/skill.md` | Invoked as `/causal [mode]` — 6-mode causal inference: select, analyze, check, sensitivity, report, full. For when experiments aren't possible (pre-post, DiD, PSM, regression). |
 | Deck Critique | `.claude/skills/deck-critique/skill.md` | Invoked as `/deck-critique` — score any deck slide-by-slide against the Data Story Checklist (SO-WHAT, STAKES, EVIDENCE, ASK). Returns diagnosis + grade + prescription. |
 | Slide Transform | `.claude/skills/slide-transform/skill.md` | Invoked as `/slide-transform` — take one bad slide and produce 2-3 redesigned variants (headline fix, declutter, story reframe) with before/after scoring. |
 | Deck Rescue | `.claude/skills/deck-rescue/skill.md` | Invoked as `/deck-rescue` — full deck rewrite pipeline: diagnose → extract story → rebuild narrative arc → new Marp deck + before/after comparison. |
@@ -278,6 +282,19 @@ Python helpers for source detection and fallback are in `helpers/data_helpers.py
 ### Chart Helpers & Style
 
 See `helpers/INDEX.md` for the complete list of helper modules and their functions.
+
+### Experiment Statistics (`helpers/experiment_stats/`)
+
+Production-grade statistical functions for A/B testing and causal inference. Always use these instead of inline scipy/statsmodels:
+- **A/B tests:** `welch_test`, `proportion_test`, `ratio_metric_test`, `winsorize`
+- **Power:** `power_proportion`, `power_mean`, `detectable_effect`, `duration_estimate`, `power_sensitivity_table`
+- **SRM:** `srm_check`, `srm_diagnose`
+- **Effect sizes:** `cohens_d`, `relative_lift`
+- **Multiple comparisons:** `adjust_pvalues`
+- **Variance reduction:** `cuped_adjust`
+- **Sequential:** `confidence_sequence`, `always_valid_pvalue`
+- **Bayesian:** `bayesian_proportion`, `bayesian_mean`, `prob_best`, `expected_loss`
+- **Causal:** `pre_post_analysis`, `did_basic`, `parallel_trends_test`, `event_study_plot`, `propensity_match`, `balance_table`, `love_plot`, `regression_adjust`, `rosenbaum_bounds`, `e_value`, `check_common_support`
 
 ### Google Doc Export
 

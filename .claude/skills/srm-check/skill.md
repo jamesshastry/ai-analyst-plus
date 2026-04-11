@@ -63,21 +63,28 @@ Scan the dataset for columns that indicate experiment assignment. Look for:
 Use a chi-squared goodness-of-fit test:
 
 ```python
-from scipy.stats import chisquare
-import numpy as np
+from helpers.experiment_stats import srm_check
 
 # observed counts per group
-observed = [n_control, n_treatment]
+result = srm_check(
+    observed_counts=[n_control, n_treatment],
+    expected_ratios=[0.5, 0.5],  # or designed ratio
+)
+# Returns: chi2, p_value, verdict (PASS/WARNING/BLOCK), interpretation
 
-# expected counts (based on designed ratio)
-total = sum(observed)
-expected_ratio = [0.5, 0.5]  # or designed ratio
-expected = [total * r for r in expected_ratio]
-
-chi2, p_value = chisquare(observed, f_exp=expected)
+chi2 = result["chi2"]
+p_value = result["p_value"]
+verdict = result["verdict"]
 ```
 
-Alternatively, use `helpers/stats_helpers.py` if a chi-squared helper is available.
+For segmented SRM diagnosis (find WHICH segments have broken randomization):
+
+```python
+from helpers.experiment_stats import srm_diagnose
+
+diag = srm_diagnose(assignments_df, segments=["platform", "country"])
+# Returns per-segment SRM results to identify the source of the mismatch
+```
 
 #### Step 4: Interpret and decide
 

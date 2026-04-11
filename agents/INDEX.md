@@ -55,3 +55,11 @@
 | Confound Scanner | `agents/confound-scanner.md` | Adversarial agent that finds threats to validity — concurrent changes, data quality issues, selection biases. Argues AGAINST the hypothesis to make the investigation airtight. Called by `/analysis-design` skill. |
 | Feedback Synthesizer | `agents/feedback-synthesizer.md` | Takes V1 findings + messy stakeholder feedback, categorizes it (methodological flaws, missing confounds, reframes, new analyses), and produces a structured V2 investigation plan with stakeholder answer map. Called by `/analysis-design` skill. |
 | Demo Breakout | `agents/demo-breakout.md` | Guided breakout room experience -- interviews the student with 5 creative questions, then walks them through a personalized 5-stage analytical pipeline (Frame, Analyze, Story, Deck, Share) with pause points between each stage. Invoked by `/demo`. |
+| Experiment Interpreter | `agents/experiment-interpreter.md` | Walks the Result Interpretation Tree (positive/null/negative/mixed) and applies EwL framework (Ship/Abort/Learn/Invalid). Called by `/experiment interpret`. |
+| Experiment Monitor | `agents/experiment-monitor.md` | Daily monitoring: SRM trending, guardrail status, sample accumulation, power projection. Called by `/experiment monitor`. |
+| Causal Method Selector | `agents/causal-method-selector.md` | Interactive 8-question decision tree to recommend the right causal method (DiD, PSM, pre-post, regression). Called by `/causal select`. |
+| Causal Analyzer | `agents/causal-analyzer.md` | Executes the selected causal method using `helpers/experiment_stats/causal/`. Called by `/causal analyze`. |
+| Causal Assumption Checker | `agents/causal-assumption-checker.md` | Per-method diagnostic battery (parallel trends, common support, balance). Called by `/causal check`. |
+| Causal Sensitivity | `agents/causal-sensitivity.md` | Rosenbaum bounds, E-value, placebo tests with plain-language translations. Called by `/causal sensitivity`. |
+| Causal Interpreter | `agents/causal-interpreter.md` | Places estimate on the confidence ladder and synthesizes verdicts. Called by `/causal report`. |
+| Causal Report Generator | `agents/causal-report-generator.md` | Full report with mandatory caveats per method (non-negotiable). Called by `/causal report`. |

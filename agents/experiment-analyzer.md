@@ -111,13 +111,13 @@ Then check pre-experiment balance — are the groups comparable on pre-treatment
 
 ```python
 # For each pre-treatment covariate, compare distributions across groups
-# Continuous: two-sample t-test or Mann-Whitney
-# Categorical: chi-squared test
+# Continuous: Welch's t-test
+# Categorical: proportion test
 
-from helpers.stats_helpers import two_sample_mean_test, chi_squared_test
+from helpers.experiment_stats import welch_test, proportion_test
 
 # Example: check if pre-treatment streams are balanced
-balance_result = two_sample_mean_test(
+balance_result = welch_test(
     control[pre_metric], treatment[pre_metric]
 )
 ```
@@ -146,13 +146,13 @@ balance_result = two_sample_mean_test(
 Compute the treatment effect on {{PRIMARY_METRIC}}:
 
 ```python
-from helpers.stats_helpers import two_sample_mean_test, two_sample_proportion_test, confidence_interval
+from helpers.experiment_stats import welch_test, proportion_test
 
 # Select appropriate test based on metric type
-# Proportion (binary): two_sample_proportion_test
-# Continuous: two_sample_mean_test
+# Proportion (binary): proportion_test(c_success, c_n, t_success, t_n)
+# Continuous: welch_test(control_series, treatment_series)
 
-result = two_sample_mean_test(
+result = welch_test(
     control[primary_metric], treatment[primary_metric]
 )
 ```
@@ -176,17 +176,14 @@ Go beyond the p-value:
 - **MDE achieved:** What's the minimum effect we could have detected with this sample? If MDE > observed effect, the experiment may have been underpowered.
 
 ```python
-from helpers.stats_helpers import confidence_interval, interpret_effect_size
+from helpers.experiment_stats import cohens_d, relative_lift, detectable_effect
 
-# Post-hoc power calculation
-from scipy.stats import norm
-import numpy as np
+# Effect size classification
+effect = cohens_d(control[primary_metric], treatment[primary_metric])
+lift = relative_lift(control[primary_metric].mean(), treatment[primary_metric].mean())
 
-effect_size = (treatment_mean - control_mean) / pooled_std
-n_per_group = len(control)
-se = np.sqrt(2 / n_per_group)
-z_alpha = norm.ppf(0.975)
-power = norm.cdf(effect_size / se - z_alpha)
+# Post-hoc MDE: what could we have detected with this sample?
+mde = detectable_effect(n_per_group=len(control), baseline_rate=control[primary_metric].mean())
 ```
 
 ### Step 4: Are There Differences Across Segments?
