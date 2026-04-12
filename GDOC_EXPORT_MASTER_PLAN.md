@@ -630,7 +630,7 @@ If/when the `google-workspace` MCP is installed on Shane's machine:
 - [ ] No generated files in `git status`
 
 ### End-to-end
-- [ ] Full pipeline on NovaMart → `/export gdoc` → doc in < 60 seconds
+- [ ] Full pipeline on sample dataset → `/export gdoc` → doc in < 60 seconds
 - [ ] PM reads Summary in 30 seconds, knows the key findings
 - [ ] Charts inline, properly sized, captioned
 - [ ] "Would I send this to my VP?" → yes

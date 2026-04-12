@@ -248,12 +248,12 @@ def generate_test_fixture():
                     "ORDER BY step_order;"
                 ),
                 used_in_finding=1,
-                database="novamart.funnel_events",
+                database="ecommerce.funnel_events",
             ),
         ],
         companion_analyses="Previous checkout analysis (Dec 2025)\nMobile UX audit report",
         data_sources=(
-            "NovaMart production database. Tables: checkout_events, "
+            "Production database. Tables: checkout_events, "
             "funnel_events. Date range: Jan 1 - Mar 31, 2026. "
             "1.2M sessions, 340K unique users."
         ),

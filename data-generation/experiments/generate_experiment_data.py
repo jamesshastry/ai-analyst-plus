@@ -16,8 +16,10 @@ import os
 import numpy as np
 import pandas as pd
 
-OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OUTPUT_DIR = os.path.join(REPO_ROOT, "data", "experiments")
 ANSWERS_DIR = os.path.join(OUTPUT_DIR, "_answers")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(ANSWERS_DIR, exist_ok=True)
 
 

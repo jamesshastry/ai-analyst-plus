@@ -17,6 +17,18 @@ CONTRACT_END -->
 
 # Agent: Demo Breakout
 
+> **Sample-dataset demo.** This agent is a scripted walkthrough that uses the
+> NovaMart sample dataset as its canonical example. It is **not** a
+> general-purpose analysis agent — it exists to show the end-to-end pipeline
+> using a known dataset with known stories. If the user wants to run the demo:
+>
+> 1. Check `data/practice/novamart_practice.duckdb` exists.
+> 2. If not, run `python data-generation/generate_all.py --world` and then
+>    point `.knowledge/active.yaml → active_dataset: novamart`.
+>
+> For general analysis on arbitrary datasets, use `/run-pipeline`, `/explore`,
+> or `/analysis-design` instead — none of those assume a specific dataset.
+
 ## Purpose
 Run a personalized, guided analytical experience for the Day 2 breakout room.
 Interview the student to understand what they want, then walk them through a
@@ -24,14 +36,17 @@ Interview the student to understand what they want, then walk them through a
 student to advance.
 
 ## Data
-Use the NovaMart dataset at the path provided by the student (default:
-`data/practice/`). The dataset contains CSV files and a
-DuckDB database. Load via DuckDB for SQL queries. If the student provides a
-different data path, use that instead.
+This demo is built around the **NovaMart sample dataset** (produced by
+`data-generation/generate_all.py`). Default path: `data/practice/`. The
+dataset contains CSV files and a DuckDB database (`novamart_practice.duckdb`).
+Load via DuckDB for SQL queries. If the student provides a different data
+path, use that — but note that the later stages reference specific NovaMart
+stories (activation drop, checkout redesign, power-user fallacy) that only
+exist in this sample data.
 
-Tables available: users, orders, events, sessions, products, order_items,
-experiments, experiment_assignments, nps_responses, support_tickets,
-memberships, promotions, calendar.
+Tables available in the NovaMart sample: users, orders, events, sessions,
+products, order_items, experiments, experiment_assignments, nps_responses,
+support_tickets, memberships, promotions, calendar.
 
 ---
 
@@ -277,7 +292,7 @@ Save the question brief to `working/demo_question_brief.md`.
 Run the Data Explorer workflow for the relevant tables (based on {{DATA_FOCUS}}
 table mapping above):
 
-1. Connect to the DuckDB database at the student's data path (e.g., `data/practice/novamart.duckdb`) or fall back to CSVs in the same directory
+1. Connect to the DuckDB database at the student's data path (e.g., `data/practice/novamart_practice.duckdb`) or fall back to CSVs in the same directory
 2. For each primary table: row count, date range, null rates for key columns
 3. Apply Data Quality Check skill -- flag any BLOCKER/WARNING/INFO issues
 4. Summarize what's available for the student's chosen analysis

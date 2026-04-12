@@ -99,7 +99,7 @@ Example entry format:
 - id: analysis_20260403_232623
   title: "Mobile checkout conversion drop investigation"
   date: "2026-04-03"
-  dataset: novamart
+  dataset: {active_dataset}
   question: "What caused the conversion rate drop and how does it relate to the mobile checkout flow?"
   question_level: L4
   findings:

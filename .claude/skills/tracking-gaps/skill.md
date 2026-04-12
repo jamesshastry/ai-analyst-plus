@@ -173,15 +173,15 @@ For gaps that need engineering work:
 
 **Analysis goal:** Measure how feature adoption differs by user role (PMs vs. Engineers) in a B2B product.
 
-**Dataset:** NovaMart e-commerce data (tracks shopping behavior, not product feature usage)
+**Dataset:** e-commerce data (tracks shopping behavior, not product feature usage)
 
 ```markdown
 ### Fundamental Gap: Wrong Dataset Type
 
-**What's missing:** This analysis requires B2B product analytics data, but NovaMart is an e-commerce dataset.
+**What's missing:** This analysis requires B2B product analytics data, but the active dataset is an e-commerce dataset.
 
 **Why the mismatch matters:**
-- NovaMart tracks: product categories (Electronics, Clothing), customer types (New/Returning), checkout conversion
+- Active dataset tracks: product categories (Electronics, Clothing), customer types (New/Returning), checkout conversion
 - Analysis needs: feature usage events, user job roles, product adoption metrics
 
 **Analysis Status:** BLOCKED — Cannot answer this question with the current dataset.

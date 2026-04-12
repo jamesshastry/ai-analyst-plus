@@ -121,7 +121,7 @@ ls -l working/latest
 readlink working/latest
 ```
 
-The symlink points to a run directory (e.g., `working/runs/2026-04-03_novamart_checkout-feature-impact/`). Extract the run directory name from the symlink target and display the detail view for that run (same format as `/runs {id}` below).
+The symlink points to a run directory (e.g., `working/runs/2026-04-03_<dataset>_checkout-feature-impact/`). Extract the run directory name from the symlink target and display the detail view for that run (same format as `/runs {id}` below).
 
 **Error handling:**
 - If `working/latest` doesn't exist: "No active pipeline runs found. Use /run-pipeline to start one."

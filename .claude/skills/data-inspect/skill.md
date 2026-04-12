@@ -79,7 +79,7 @@ Use `/data {table}` for column details.
 
 **Format example:**
 ```
-Active Dataset: NovaMart
+Active Dataset: {dataset_name}
 Table: users
 
 Description: User dimension table with demographics and signup info

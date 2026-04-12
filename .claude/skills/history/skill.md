@@ -76,7 +76,7 @@ After displaying history:
 
 ## Why This Matters
 
-**Dataset filtering** ensures users see relevant analyses for their current working context. A user analyzing NovaMart data shouldn't see sales-data analyses by default — it creates noise and makes it harder to find relevant prior work. The `--all` flag is available when cross-dataset comparison is needed.
+**Dataset filtering** ensures users see relevant analyses for their current working context. A user analyzing one dataset shouldn't see unrelated-dataset analyses by default — it creates noise and makes it harder to find relevant prior work. The `--all` flag is available when cross-dataset comparison is needed.
 
 **Contextual offers** ("Want to review the full analysis?") help users take action on the information. Simply listing file paths isn't enough — explicitly offering next steps makes the history actionable.
 

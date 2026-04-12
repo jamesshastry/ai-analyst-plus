@@ -173,7 +173,7 @@ For shared friction points or significant divergences, estimate business impact 
 
 **Pragmatic alternative:** If the active dataset has natural segments (product categories, regions, user cohorts), offer to compare those segments instead:
 
-> "Only 1 dataset is connected, but NovaMart has two main product categories (Electronics and Clothing). Would you like me to compare checkout conversion between these categories instead?"
+> "Only 1 dataset is connected, but it has two main product categories (Electronics and Clothing). Would you like me to compare checkout conversion between these categories instead?"
 
 This interpretation is valid when:
 - User says "compare datasets" or "compare across product lines"

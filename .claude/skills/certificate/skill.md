@@ -121,13 +121,13 @@ npx @marp-team/marp-cli --no-stdin --pdf --html --allow-local-files \
   -o "Certificate of Completion.pdf"
 ```
 
-For example, if the deck is `outputs/deck_novamart_2026-04-01.marp.md` with
+For example, if the deck is `outputs/deck_<topic>_2026-04-01.marp.md` with
 `theme: analytics` (which imports `analytics-light`):
 
 ```bash
 npx @marp-team/marp-cli --no-stdin --pdf --html --allow-local-files \
   --theme themes/analytics-light.css \
-  outputs/deck_novamart_2026-04-01.marp.md \
+  outputs/deck_<topic>_2026-04-01.marp.md \
   -o "Certificate of Completion.pdf"
 ```
 
@@ -182,10 +182,10 @@ Use this topic in the caption. For example:
 - Mention AI Analyst Lab naturally if it fits, but prioritize the work itself
 
 **Example construction**:
-- Topic: "NovaMart Checkout Feature Impact"
+- Topic: "Checkout Feature Impact"
 - Slide count: 43 slides
 - Hook: "Want to see the full analysis?"
-- Result: "Analyzed NovaMart checkout feature impact — 43 slides from question to recommendation. Here's my certificate. Want to see the analysis?" (140 chars)
+- Result: "Analyzed checkout feature impact — 43 slides from question to recommendation. Here's my certificate. Want to see the analysis?" (130 chars)
 
 **More examples** (adapt to actual numbers):
 - "Built an AI analyst that generates experiment designs and impact forecasts. 18 charts from plain English questions. Here's the certificate."

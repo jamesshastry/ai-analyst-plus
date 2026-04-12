@@ -223,7 +223,7 @@ IMPORTANT: You MUST actually execute each step using tools. Do NOT just describe
 - Workspace: $workspace
 
 ## Context
-This is a skill for an AI Product Data Analyst tool used by PMs, data scientists, and engineers. The tool analyzes datasets (NovaMart e-commerce data), runs SQL, creates charts, and produces analytical narratives. Users ask things like "why did conversion drop?", "analyze our funnel", "explore the data", "design an experiment."
+This is a skill for an AI Product Data Analyst tool used by PMs, data scientists, and engineers. The tool connects to arbitrary datasets (the active one is read from `.knowledge/active.yaml`), runs SQL, creates charts, and produces analytical narratives. Users ask things like "why did conversion drop?", "analyze our funnel", "explore the data", "design an experiment."
 
 ## Process — Follow these steps IN ORDER
 
@@ -253,7 +253,7 @@ Read the skill at $skill_dir/SKILL.md, then follow its instructions to handle th
 [test prompt]
 Save your output to $workspace/iteration-1/eval-{ID}/with_skill/output.md
 Work in the directory: $REPO_ROOT
-The active dataset is NovaMart (e-commerce data in data/practice/ directory, use DuckDB to query).
+Determine the active dataset from .knowledge/active.yaml and use whatever data it points to. If no dataset is set, ask the user or skip data-dependent steps.
 \`\`\`
 
 **Baseline subagent (no skill):**
@@ -262,7 +262,7 @@ Handle this task WITHOUT reading any skill files:
 [test prompt]
 Save your output to $workspace/iteration-1/eval-{ID}/without_skill/output.md
 Work in the directory: $REPO_ROOT
-The active dataset is NovaMart (e-commerce data in data/practice/ directory, use DuckDB to query).
+Determine the active dataset from .knowledge/active.yaml and use whatever data it points to. If no dataset is set, ask the user or skip data-dependent steps.
 \`\`\`
 
 Launch all subagents in PARALLEL (all in one message with multiple Task calls). Use subagent_type "general-purpose" for each.

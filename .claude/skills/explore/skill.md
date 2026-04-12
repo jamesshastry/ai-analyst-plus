@@ -33,8 +33,8 @@ patterns, and form hypotheses before committing to a formal analysis.
 
 **If .knowledge/ files don't exist (common for new users), fall back:**
 1. Look for data in these locations (in order):
-   - `data/practice/*.csv` (practice datasets)
-   - `data/examples/*.csv` (example datasets)
+   - `data/examples/*.csv` (shared example datasets)
+   - `data/practice/*.csv` (only populated if the user ran `data-generation/generate_all.py`)
    - `tests/fixtures/*.csv` (test data)
 2. Use the first location where data is found
 3. Infer schema by reading a sample of the data
@@ -155,7 +155,7 @@ Include:
 4. **Always cite table and column names** in output. Users need to know what you're referencing.
 
 5. **Mention data source explicitly** - Tell the user where data came from:
-   - "Using data from data/practice/ (local CSV files)"
+   - "Using data from {path} (local CSV files)"
    - "Connected to MotherDuck database"
    - "Reading from {specific file path}"
 

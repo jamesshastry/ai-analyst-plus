@@ -64,7 +64,7 @@ Before designing the experiment, **verify the active dataset can actually measur
 - Are the guardrail metrics measurable with available data?
 - If metrics are NOT measurable, HALT and explain: "The active dataset ([dataset name]) cannot measure [metric]. You would need [description of required data] to run this experiment."
 
-**Example:** If the user wants to test a music app feature but the active dataset is e-commerce data (NovaMart), stop and explain the mismatch rather than proceeding with an invalid brief.
+**Example:** If the user wants to test a music app feature but the active dataset is e-commerce data, stop and explain the mismatch rather than proceeding with an invalid brief.
 
 #### Step 1: Extract the hypothesis
 

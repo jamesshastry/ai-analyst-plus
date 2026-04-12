@@ -36,7 +36,7 @@
 | 1 | Week overview narrative | FRAMEWORK-ONLY | N/A | N/A | — |
 | 2 | NovaMart checkout redesign story intro | FRAMEWORK-ONLY | Scenario matches `clean_ab.csv` | N/A | — |
 | 3 | NovaMart Power User question story intro | FRAMEWORK-ONLY | Scenario matches `confounded.csv` | N/A | Column names differ (see Gap Note 5) |
-| 4 | Mentions `experiments` table in DuckDB | PARTIAL | 9 CSVs in `data/novamart/experiments/` | N/A | CSVs not registered in `.knowledge/datasets/novamart/schema.md` |
+| 4 | Mentions `experiments` table in DuckDB | YES | 12 CSVs in `data/experiments/`, registered as `experiments` dataset in `.knowledge/datasets/experiments/` | N/A | — |
 
 ### 4.2a The Case for Experiments (5 min) — Concept
 
@@ -443,11 +443,9 @@ The main CLAUDE.md at the repo root needs to know about the new capabilities. Cu
 
 **Fix:** Add a section to CLAUDE.md listing the new skills, agents, and the experiment_stats library with its public API.
 
-### Priority 4: Schema Registration
+### Priority 4: Schema Registration — RESOLVED 2026-04-11
 
-Experiment CSVs in `data/novamart/experiments/` are not registered in `.knowledge/datasets/novamart/schema.md`. The AI analyst system won't discover them without schema registration.
-
-**Fix:** Add experiment table definitions to the schema file.
+Experiment CSVs were moved to `data/experiments/` and registered as the `experiments` dataset in `.knowledge/datasets/experiments/` (manifest + schema + quirks). The AI analyst system now discovers them via `/datasets`. Generator relocated to `data-generation/experiments/generate_experiment_data.py`.
 
 ### Priority 5: agents/INDEX.md
 
