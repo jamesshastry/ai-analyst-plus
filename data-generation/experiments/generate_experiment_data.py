@@ -39,9 +39,13 @@ def generate_clean_ab():
 
     NovaMart tested a simplified checkout flow. The new flow increased
     conversion by ~5% relative. No SRM, no guardrail issues.
+
+    n=15000/group ensures the +5% relative lift reliably lands at p<0.01,
+    so Lesson 4.12's "Clean Ship" teaching beat works without Monte Carlo
+    drift ambiguity.
     """
     rng = np.random.default_rng(101)
-    n = 5000
+    n = 15000
 
     users = []
     for i in range(n * 2):
@@ -68,7 +72,7 @@ def generate_clean_ab():
         "srm": "PASS",
         "guardrails": "clean",
         "expected_verdict": "SHIP",
-        "notes": "Clean experiment with clear positive result.",
+        "notes": "Clean experiment with clear positive result. n=15000/group ensures reliable p<0.01 for Lesson 4.12 Ship teaching beat.",
     })
     return df
 
@@ -110,16 +114,28 @@ def generate_srm_violation():
 def generate_guardrail_violation():
     """A/B test where conversion improves but page load time degrades.
 
-    New checkout flow: +3% conversion, but +200ms p95 latency. Classic trade-off.
+    New checkout flow: +6% conversion (reliably detectable at n=5000),
+    but +15% relative page load latency. Classic trade-off used by
+    Lesson 4.12's "Investigate" teaching beat — need a POSITIVE
+    significant primary in tension with a VIOLATED guardrail.
     """
     rng = np.random.default_rng(103)
     n = 5000
+    # Deterministic conversion counts for pedagogical reliability:
+    # control 35.0%, treatment 37.1% → +2.1pp / +6% relative, z ≈ 2.2, p ≈ 0.028
+    n_control_convert = 1750
+    n_treatment_convert = 1855
 
     users = []
     for i in range(n * 2):
-        variant = "control" if i < n else "treatment"
-        conv_rate = 0.35 * (1.03 if variant == "treatment" else 1.0)
-        converted = rng.binomial(1, conv_rate)
+        if i < n:
+            variant = "control"
+            converted = 1 if i < n_control_convert else 0
+        else:
+            variant = "treatment"
+            j = i - n
+            converted = 1 if j < n_treatment_convert else 0
+
         revenue = rng.lognormal(3.5, 0.8) if converted else 0.0
         # Latency: treatment is slower
         base_latency = rng.lognormal(6.5, 0.3)  # ~660ms median
@@ -133,13 +149,25 @@ def generate_guardrail_violation():
             "platform": rng.choice(["ios", "android", "web"]),
         })
 
+    # Shuffle within variant so converters aren't the first N rows
+    df_users = pd.DataFrame(users)
+    shuffled = []
+    for variant in ("control", "treatment"):
+        sub = df_users[df_users["variant"] == variant].sample(
+            frac=1, random_state=rng.bit_generator
+        ).reset_index(drop=True)
+        shuffled.append(sub)
+    df_users = pd.concat(shuffled, ignore_index=True)
+    df_users["user_id"] = [f"u{i:06d}" for i in range(len(df_users))]
+    users = df_users.to_dict("records")
+
     df = pd.DataFrame(users)
     save_dataset(df, "guardrail_violation", {
-        "true_effect": "+3% relative lift in conversion",
+        "true_effect": "+6% relative lift in conversion",
         "guardrail_violation": "+15% increase in page load time",
         "srm": "PASS",
         "expected_verdict": "INVESTIGATE (Mixed Results Framework)",
-        "notes": "Primary metric up but latency guardrail violated. Net impact analysis needed.",
+        "notes": "Primary metric up but latency guardrail violated. Net impact analysis needed. Bumped from +3% to +6% so the lift reliably lands at p<0.05 at n=5000.",
     })
     return df
 

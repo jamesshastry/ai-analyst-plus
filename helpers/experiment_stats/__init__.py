@@ -48,6 +48,7 @@ from helpers.experiment_stats.power import (
     power_proportion,
     power_mean,
     detectable_effect,
+    power_at_n,
     duration_estimate,
     power_sensitivity_table,
 )
@@ -97,6 +98,7 @@ __all__ = [
     "winsorize",
     # Power analysis
     "power_proportion",
+    "power_at_n",
     "power_mean",
     "detectable_effect",
     "duration_estimate",

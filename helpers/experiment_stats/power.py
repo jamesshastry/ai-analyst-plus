@@ -198,6 +198,69 @@ def detectable_effect(n_per_group, baseline_rate=None, baseline_std=None,
         }
 
 
+def power_at_n(baseline_rate, mde_relative, n_per_group, alpha=0.05):
+    """Realized power for a proportion test at a fixed sample size.
+
+    Inverse of `power_proportion`: given a sample size you already have,
+    how much power do you actually have to detect a specific relative MDE?
+    Use this when the experiment is already running (or already over) and
+    you want to know whether a null result means "no effect" or "not enough
+    data to tell."
+
+    Args:
+        baseline_rate: current conversion rate (0 < rate < 1).
+        mde_relative: relative effect size to detect (e.g., 0.10 for +10%).
+        n_per_group: fixed number of users per group.
+        alpha: significance level (default 0.05).
+
+    Returns:
+        dict with: baseline_rate, treatment_rate, n_per_group, power, alpha,
+        interpretation.
+    """
+    if baseline_rate <= 0 or baseline_rate >= 1:
+        return {
+            "error": "baseline_rate must be between 0 and 1 (exclusive)",
+            "interpretation": "Invalid baseline rate.",
+        }
+    if n_per_group < 2:
+        return {
+            "error": "n_per_group must be >= 2",
+            "interpretation": "Sample size too small.",
+        }
+
+    treatment_rate = baseline_rate * (1 + mde_relative)
+    if treatment_rate <= 0 or treatment_rate >= 1:
+        return {
+            "error": "treatment_rate out of (0, 1) given baseline * (1+mde)",
+            "interpretation": "Effect pushes treatment rate out of valid range.",
+        }
+
+    h = 2 * (math.asin(math.sqrt(treatment_rate)) - math.asin(math.sqrt(baseline_rate)))
+    analysis = NormalIndPower()
+    power = analysis.solve_power(
+        effect_size=abs(h),
+        nobs1=n_per_group,
+        alpha=alpha,
+        alternative="two-sided",
+    )
+
+    interp = (
+        f"With {n_per_group:,} users per group, you have {power*100:.0f}% "
+        f"power to detect a {mde_relative*100:.0f}% relative lift from "
+        f"{baseline_rate*100:.1f}% to {treatment_rate*100:.1f}% "
+        f"(alpha={alpha}, two-sided)."
+    )
+    return {
+        "baseline_rate": float(baseline_rate),
+        "treatment_rate": float(treatment_rate),
+        "mde_relative": float(mde_relative),
+        "n_per_group": n_per_group,
+        "power": float(power),
+        "alpha": alpha,
+        "interpretation": interp,
+    }
+
+
 def power_sensitivity_table(baseline_rate, mde_values, daily_traffic_values,
                             alpha=0.05, power=0.80):
     """Generate a sensitivity table of sample sizes and durations.
