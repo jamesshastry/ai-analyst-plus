@@ -565,27 +565,43 @@ def generate_checkout_timeseries():
 def generate_power_user_fallacy():
     """Observational data showing power user / selection bias.
 
-    Lesson 4.18b: power users adopt features more AND retain better naturally.
+    Teaches: power users adopt features more AND retain better naturally.
     Columns: job_role, heavy_usage, retained_30d (matching lesson expectations).
-    Naive analysis shows heavy users retain 85% vs light 55%.
-    True causal effect of heavy usage on retention: ~+10pp (not +30pp).
+
+    Designed so the raw headline ("heavy users retain ~2x as often as light")
+    holds while the true causal effect of heavy usage on retention is only
+    ~+10pp. The ~20pp residual gap is entirely confounding via job_role:
+    engineers dominate the heavy population AND retain best naturally.
+
+    Target realized numbers:
+      Light users: retention ≈ 42-45%
+      Heavy users: retention ≈ 80-82%
+      Raw gap: ~38pp, raw ratio ~1.85x (the "2x retention" lore)
+      After controlling for job_role: effect ≈ +10pp (the true causal effect)
     """
     rng = np.random.default_rng(112)
     n = 3000
 
-    # Job role affects both usage and retention (confounder)
+    # Job role affects both usage and retention (confounder).
+    # Parameters tuned so engineers dominate heavy users and have the highest
+    # base retention, which creates the ~2x naive gap the lessons teach.
     job_roles = rng.choice(
         ["engineer", "pm", "designer", "analyst", "other"],
         size=n,
         p=[0.30, 0.25, 0.15, 0.20, 0.10],
     )
+    # Highly imbalanced usage propensity: engineers are almost all heavy,
+    # other roles almost all light. This is what makes the confounding loud.
     role_usage_propensity = {
-        "engineer": 0.65, "pm": 0.45, "designer": 0.30,
-        "analyst": 0.55, "other": 0.25,
+        "engineer": 0.92, "pm": 0.15, "designer": 0.08,
+        "analyst": 0.20, "other": 0.05,
     }
+    # Base retention (WITHOUT the heavy-usage bump) spread apart so the
+    # role mix drives most of the naive gap. Engineers (who dominate the
+    # heavy population) retain best; other roles retain much worse.
     role_retention_base = {
-        "engineer": 0.72, "pm": 0.68, "designer": 0.60,
-        "analyst": 0.70, "other": 0.55,
+        "engineer": 0.78, "pm": 0.44, "designer": 0.34,
+        "analyst": 0.50, "other": 0.28,
     }
 
     heavy_usage = np.array([
@@ -596,7 +612,7 @@ def generate_power_user_fallacy():
         role_retention_base[r] + 0.10 * heavy_usage[i]
         for i, r in enumerate(job_roles)
     ])
-    retained_30d = rng.binomial(1, np.clip(retention_probs, 0.1, 0.95))
+    retained_30d = rng.binomial(1, np.clip(retention_probs, 0.05, 0.95))
 
     # Add extra features for richer analysis
     signup_source = rng.choice(
@@ -618,14 +634,16 @@ def generate_power_user_fallacy():
     })
 
     save_dataset(df, "power_user_fallacy", {
-        "true_causal_effect": "+10pp retention from heavy usage",
-        "naive_estimate": "~+30pp (confounded by job_role)",
+        "true_causal_effect": "+10pp retention from heavy usage (realized ~+8.5pp after controlling for job_role)",
+        "naive_estimate": "~+38pp (heavy 79% vs light 41%, ratio ~1.92x — the 'nearly 2x retention' lore)",
         "confounders": ["job_role (affects both heavy_usage and retention)"],
         "expected_analysis": "Segment by job_role to reveal Simpson's paradox; "
                              "PSM or regression with job_role as covariate",
-        "notes": "Matches lesson 4.18b. Engineers are more likely to be heavy "
-                 "users AND more likely to retain. Naive comparison overstates "
-                 "the effect 3x.",
+        "notes": "Week 4 running example for the Power User Fallacy. Engineers "
+                 "dominate the heavy population (92% usage propensity) AND have "
+                 "the highest base retention (78%), which creates the ~2x naive "
+                 "gap. Controlling for job_role collapses the effect to ~8.5pp "
+                 "(CI ~[+3pp, +14pp]), close to the +10pp true causal effect.",
     })
     return df
 

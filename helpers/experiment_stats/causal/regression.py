@@ -51,10 +51,29 @@ def regression_adjust(df, outcome_col, treatment_col, covariates, alpha=0.05):
                 "interpretation": "Need more data than parameters."}
 
     y = df[outcome_col].astype(float)
-    X = sm.add_constant(df[[treatment_col] + covariates].astype(float))
+
+    # Build X: numeric covariates pass through, string/categorical covariates
+    # are one-hot encoded (drop_first=True to avoid collinearity).
+    X_parts = [df[[treatment_col]].astype(float).reset_index(drop=True)]
+    expanded_cov_names = []
+    cov_source_map = {}  # expanded name -> original covariate name
+    for cov in covariates:
+        series = df[cov]
+        if series.dtype == "object" or str(series.dtype).startswith("category"):
+            dummies = pd.get_dummies(series, prefix=cov, drop_first=True).astype(float)
+            X_parts.append(dummies.reset_index(drop=True))
+            for dummy_col in dummies.columns:
+                expanded_cov_names.append(dummy_col)
+                cov_source_map[dummy_col] = cov
+        else:
+            X_parts.append(series.astype(float).reset_index(drop=True).to_frame(cov))
+            expanded_cov_names.append(cov)
+            cov_source_map[cov] = cov
+
+    X = sm.add_constant(pd.concat(X_parts, axis=1))
 
     try:
-        model = sm.OLS(y, X).fit(cov_type="HC1")
+        model = sm.OLS(y.reset_index(drop=True), X).fit(cov_type="HC1")
     except Exception as e:
         return {"error": str(e), "interpretation": f"OLS failed: {e}"}
 
@@ -64,14 +83,15 @@ def regression_adjust(df, outcome_col, treatment_col, covariates, alpha=0.05):
     p_value = float(model.pvalues[treatment_col])
     significant = bool(p_value < alpha)
 
-    # Covariate effects summary
+    # Covariate effects summary (expanded form, one row per dummy/numeric)
     cov_effects = []
-    for cov in covariates:
+    for expanded in expanded_cov_names:
         cov_effects.append({
-            "covariate": cov,
-            "coefficient": float(model.params[cov]),
-            "p_value": float(model.pvalues[cov]),
-            "significant": bool(model.pvalues[cov] < alpha),
+            "covariate": expanded,
+            "source": cov_source_map[expanded],
+            "coefficient": float(model.params[expanded]),
+            "p_value": float(model.pvalues[expanded]),
+            "significant": bool(model.pvalues[expanded] < alpha),
         })
 
     sig_label = "significant" if significant else "not significant"
