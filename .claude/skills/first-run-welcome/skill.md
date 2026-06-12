@@ -35,11 +35,16 @@ Read `.knowledge/setup-state.yaml`. Classify into one of three states:
 Present this welcome:
 
 ```
-Welcome to AI Analyst — your analytical partner for product teams.
+Welcome to AI Analyst Plus — your analytical partner for product teams.
 
-I help you turn business questions into validated insights, charts, and
-presentations. Think funnel analysis, segmentation, root cause investigation,
-trend detection — from question to slide deck.
+I help product teams move from business question to validated insight. Three
+focused workflows on top of general analysis:
+  • /experiment — design and analyze A/B tests
+  • /causal — measure impact when experiments aren't possible
+  • /north-star — coach your team's strategic anchor metric
+
+Plus general analysis: funnel, segmentation, root cause, trend detection,
+charts, narrative, decks.
 
 Let's get you set up. I'll walk you through a quick interview to learn about
 your data, your role, and what you want to analyze.
@@ -96,6 +101,7 @@ Quick actions:
 - Ask a question — "What's our conversion rate by channel?"
 - /explore — interactive data exploration
 - /run-pipeline — full analysis from question to deck
+- /north-star — NSM lifecycle coach (audit a candidate, design from scratch, etc.)
 
 What would you like to work on?
 ```
