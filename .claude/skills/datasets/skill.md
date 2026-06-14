@@ -45,7 +45,25 @@ For each discovered dataset (whether from registry or directory scan), read `.kn
 
 If a manifest is missing or incomplete, show what you can determine from the directory structure and note that the dataset needs profiling.
 
-### Step 4: Display the list
+### Step 4: Check for an active NSM (optional surface)
+
+Resolve the active org via this priority:
+1. `.knowledge/active.yaml` → `active_org` field (preferred — set by /setup)
+2. If `active.yaml` lacks `active_org` but `.knowledge/organizations/` has exactly one non-example org, use it
+3. Otherwise: skip this step (multi-org user must `/setup` or invoke `/north-star --org <slug>`)
+
+When the org resolves, read `.knowledge/organizations/{org_slug}/business/north-star/index.yaml` and check whether `quick_ref.active_nsm` is set. If yes, prepend a 3-line surface to the output:
+
+```
+North Star: "{quick_ref.active_nsm}"
+  Last audited: {quick_ref.last_audit_at} ({quick_ref.last_audit_verdict}) | Phase: {quick_ref.journey_phase}
+  Manage: /north-star
+
+```
+
+This makes the NSM visible at the top of `/datasets` output so PMs see their strategic anchor whenever they check what data they're working with. Skip the block entirely if (a) no org resolves, (b) the `north-star/` subdir doesn't exist, OR (c) `quick_ref.active_nsm` is null/missing.
+
+### Step 5: Display the list
 
 ```
 Connected Datasets:
@@ -64,6 +82,7 @@ Commands:
   /switch-dataset {name}  — switch active dataset
   /connect-data           — connect a new dataset
   /data                   — inspect active dataset schema
+  /north-star             — manage the org's North Star Metric
 ```
 
 Mark the active dataset with `*`. Mark others with `-`.

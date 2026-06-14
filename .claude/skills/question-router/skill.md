@@ -19,12 +19,15 @@ the question's actual needs.
 
 ## Classification Levels
 
+**Note on /north-star routing:** Questions about North Star Metric design, audit, defense, diagnosis, or evolution route to `/north-star [verb]` — see the dedicated NSM intent section near the bottom of this file.
+
 ### L1: Factual Lookup
 **Pattern:** User wants a specific number or fact from the data.
 **Examples:**
 - "How many users signed up in March?"
 - "What's the average order value?"
 - "How many products are in the electronics category?"
+- *NSM L1:* "What's a leading indicator?" / "What's the difference between an NSM and an OKR?" / "What does the playbook say about vanity metrics?" → route to `/north-star explain <concept>`
 
 **Response path:** Query the data directly. Return the answer with source
 citation (table, column, filter). No agents needed.
@@ -49,6 +52,7 @@ Apply Visualization Patterns skill. No full pipeline.
 - "Why did conversion drop last month?"
 - "Which user segment has the highest LTV?"
 - "Is our new checkout flow performing better?"
+- *NSM L3:* "Is X a good north star metric?" / "Audit our NSM candidate" / "Pressure-test 'weekly active reviewing customers'" → route to `/north-star audit "<candidate>"`. Fast-pass triage: "Is this metric worth a full audit?" → route to `/north-star triage "<candidate>"`
 
 **Response path:** Subset of the pipeline — Frame → Explore → Analyze →
 Validate → Present findings. Skip storyboard/deck unless requested.
@@ -63,6 +67,7 @@ experiment design.
 - "Investigate why mobile revenue dropped 15% in Q3"
 - "Size the opportunity if we fix the cart abandonment issue"
 - "Design an A/B test for the new pricing page"
+- *NSM L4:* "Our north star hasn't moved in 60 days" → at v1.0+ routes to `/north-star diagnose`; at v0.1 the closest available help is `/north-star explain stalled-nsm` or reading `wiki/anti-patterns/lagging-indicator-as-nsm.md` directly. "How do I push back on the CEO's choice of MRR?" → similar pattern; at v0.1 surface what the wiki has on lagging-indicator anti-pattern + offer `/north-star audit "MRR"` which will refuse with the cited reasoning the user can paste into their conversation with the CEO. Do NOT announce "this verb ships at v1.0" to a user in the middle of a real problem — name the closest thing you CAN do and offer it.
 
 **Response path:** Full pipeline minus deck. Frame → Hypothesize → Explore →
 Analyze → Root Cause → Validate → Size → Present findings.
@@ -76,6 +81,7 @@ Use 6-10 agents.
 - "Run the full pipeline on Q4 performance"
 - `/run-pipeline`
 - "Build me a board-ready deck on our retention problem"
+- *NSM L5:* "We need to pick a north star metric" / "Help us design an NSM from scratch" / "Walk us through the 8-step statement exercise" → route to `/north-star draft` (constrained-template mode in v0.1)
 
 **Response path:** Complete 18-step pipeline. All agents, full storyboard,
 charts, narrative, and Marp deck.
@@ -410,6 +416,48 @@ of narrated and guided modes.
 
 **Never in guided or narrated:** don't skip banners. Silent execution in these
 modes is the specific failure that pace mode exists to prevent.
+
+---
+
+## NSM Intent Routing (/north-star)
+
+When the user's question is about a North Star Metric (design, audit, defense, diagnosis, evolution), route to `/north-star` instead of the L1-L5 analysis pipeline.
+
+### Trigger phrases
+
+**Explicit NSM mentions:**
+- "north star metric" / "NSM" / "anchor metric"
+- "is X a good north star" / "audit our NSM" / "pressure-test our north star"
+- Colloquial framings: "the one number we care about" / "what we're optimizing for" / "the metric our CEO actually looks at" / "our strategic anchor"
+
+Bare phrases like "primary success metric", "guiding metric", or "our team's main metric" are NOT enough to route to /north-star — they're L3 metric-analysis triggers and only route here when paired with explicit NSM lifecycle context (audit / design / defend / diagnose / evolve).
+
+**Lifecycle-specific phrasing:**
+- Design: "we need an NSM" / "help us pick" / "walk us through statement exercise"
+- Audit: "is X right" / "audit this" / "pressure-test this candidate"
+- Defense: "how do I push back on" / "CEO wants us to use X but..."
+- Diagnosis: "NSM hasn't moved" / "stopped predicting" / "what's wrong with our metric"
+- Evolution: "should we change our NSM" / "outgrown our north star"
+
+### Verb dispatch table
+
+| User phrasing | Verb | v0.1? |
+|---|---|---|
+| "explain X" / "what is X" (NSM concept) | `/north-star explain <slug>` | yes |
+| "is X a good NSM" / "audit X" | `/north-star audit "<candidate>"` | yes |
+| "worth a full audit?" / "quick check on X" | `/north-star triage "<candidate>"` | yes |
+| "we need an NSM" / "help us design" | `/north-star draft` | yes (constrained-template) |
+| "what input metrics" / "metric tree" | `/north-star inputs` | yes (greenfield-only) |
+| "diagnose our NSM" / "stopped moving" | `/north-star diagnose` | v1.0 — escalate to `/north-star explain` |
+| "defend X to CEO" / "push back" | `/north-star defend` | v1.0 — same escalation |
+| "should we change" / "evolve our NSM" | `/north-star evolve` | v1.5 — same escalation |
+
+### Disambiguation rules
+
+1. **NSM-shaped phrasing wins over generic metric phrasing.** "our team's main metric" alone is L3 metric analysis; "our team's main metric — is it a good NSM?" routes to `/north-star audit`.
+2. **`/metric-spec` for the spec, `/north-star` for the strategy.** "Define this metric" → `/metric-spec`. "Is this our north star?" → `/north-star audit`.
+3. **Composition: when in doubt, defer to `/north-star`** if the user's intent involves the strategic anchor role of the metric, not its specific calculation.
+4. **For deferred-version verbs** (defend, diagnose, evolve, etc. at v0.1), route to the closest available v0.1 verb + offer the relevant wiki page. **Do not name internal version numbers to the user** — P4 boundary speech says name what we CAN do, not what we can't. Bad: "diagnose ships at v1.0." Good: "The closest thing I can do today is run audit on your current NSM — if it's failing checklist criteria, that's often the root of 'stopped moving'. Want to try?"
 
 ---
 
