@@ -159,6 +159,7 @@ condition matches -- you do not need to be asked.
 |-------|------|------------|
 | Visualization Patterns | `.claude/skills/visualization-patterns/skill.md` | Generating any chart or visualization |
 | Presentation Themes | `.claude/skills/presentation-themes/skill.md` | Creating a deck or presentation |
+| Theme Picker | `.claude/skills/theme-picker/skill.md` | Interactive chart request with no theme decided — offer the theme menu. Skip when a theme is named, a session default is set, or the chart is inside a pipeline run |
 | Data Quality Check | `.claude/skills/data-quality-check/skill.md` | Connecting to a new data source, starting any analysis, **or answering any question scoped to a specific table** (e.g., "tell me about X", "describe Y", "what's in Z") |
 | Question Framing | `.claude/skills/question-framing/skill.md` | Receiving a vague business question or starting a new analysis |
 | Metric Spec | `.claude/skills/metric-spec/skill.md` | Defining or documenting a metric |
@@ -436,7 +437,10 @@ These are non-negotiable. They protect analytical quality.
    `swd_style()` from `helpers/chart_helpers.py` before any chart. Use
    `highlight_bar()`, `highlight_line()`, and `action_title()` as your default
    chart-building functions. See `helpers/chart_style_guide.md` for the full
-   reference.
+   reference. The *theme* (which palette flows through `swd_style(theme=...)`)
+   is resolved by the Theme Picker skill: named theme > session default >
+   `analytics`. Theme choice never bypasses the SWD helpers, and the theme
+   menu never appears inside a pipeline run.
 
 9. **Always verify data connectivity at analysis start.** Before running any
    query, confirm which data source is active (MotherDuck, local DuckDB, or

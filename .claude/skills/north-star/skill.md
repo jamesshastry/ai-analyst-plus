@@ -17,6 +17,7 @@ User types `/north-star [verb] [args]` OR `/question-router` classifies a natura
 | `explain <concept>` | User wants a cited explanation of an NSM concept |
 | `draft` | **DEFERRED** — design an NSM from scratch (constrained-template). Returns a "not yet shipped" message until `draft-templates.yaml` + W3.9 helpers land. |
 | `inputs` | Build the metric tree for an already-chosen NSM. Data-validated: rejects any input that restates the NSM (`input_tree.py` guardrail). See `verbs/inputs.md`. |
+| `drivers` | Decompose what drove the NSM over a window (Breadth×Frequency×Efficiency, Depth guardrail) and auto-render a report + diverging chart. Deterministic (same window → same numbers). See `verbs/drivers.md`. |
 
 ## Companion docs
 
@@ -35,7 +36,7 @@ Execute these steps in order for every invocation. Do not skip steps. If any ste
 
 Split the user's input. First token after `/north-star` is the verb. Remaining tokens are the verb's argument(s). If no verb: render the help text (see §No-verb default).
 
-If the verb is not in `{audit, triage, explain, draft, inputs}`: render an "unknown verb" message listing valid verbs.
+If the verb is not in `{audit, triage, explain, draft, inputs, drivers}`: render an "unknown verb" message listing valid verbs.
 
 **`inputs` verb:** ships. Build the metric tree for an already-chosen NSM, with the
 `input_tree.py` guardrail rejecting any input that restates the NSM. Route to
@@ -139,6 +140,7 @@ Read the appropriate verb file and follow its specific workflow:
 - `explain` → `verbs/explain.md`
 - `draft` → `verbs/draft.md`  (v0.1: constrained-template mode)
 - `inputs` → `verbs/inputs.md`  (ships: data-validated metric tree; rejects restatements)
+- `drivers` → `verbs/drivers.md`  (ships: deterministic windowed decomposition + report/chart)
 
 The verb file specifies which specialist agent fires, which wiki pages to load, and what artifact template to use.
 

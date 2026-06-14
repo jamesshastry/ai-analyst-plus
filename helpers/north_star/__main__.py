@@ -109,6 +109,27 @@ def _cmd_check_input_tree(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_drivers(args: argparse.Namespace) -> int:
+    """Deterministic driver decomposition + report for /north-star drivers.
+
+    Writes <out>.md and <out>.html (Economist report with the diverging chart)
+    and prints the stats. Same window in => same numbers out, every run.
+    """
+    from helpers.north_star import drivers as drv
+    data = args.data or str(drv.DEFAULT_DATA)
+    stats = drv.compute(data, start=args.start, end=args.end, nsm=args.nsm)
+    out = __import__("pathlib").Path(args.out)
+    if args.format in ("md", "both"):
+        out.with_suffix(".md").write_text(drv.render_md(stats), encoding="utf-8")
+        print(f"Wrote {out.with_suffix('.md')}")
+    if args.format in ("html", "both"):
+        out.with_suffix(".html").write_text(drv.render_html(stats), encoding="utf-8")
+        print(f"Wrote {out.with_suffix('.html')}")
+    printable = {k: v for k, v in stats.items() if not k.startswith("_")}
+    print(json.dumps(printable, default=str))
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m helpers.north_star")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -142,6 +163,15 @@ def main(argv=None) -> int:
 
     p = sub.add_parser("check-input-tree", help="validate an NSM input tree (stdin JSON)")
     p.set_defaults(func=_cmd_check_input_tree)
+
+    p = sub.add_parser("drivers", help="deterministic driver decomposition + report")
+    p.add_argument("--data", default=None, help="data dir (default: repo data/practice)")
+    p.add_argument("--start", default=None, help="window start YYYY-MM (default: first full month)")
+    p.add_argument("--end", default=None, help="window end YYYY-MM (default: last full month)")
+    p.add_argument("--nsm", default="weekly completed orders")
+    p.add_argument("--out", default="outputs/north-star/drivers_report.md")
+    p.add_argument("--format", choices=["md", "html", "both"], default="both")
+    p.set_defaults(func=_cmd_drivers)
 
     args = parser.parse_args(argv)
     return args.func(args)
