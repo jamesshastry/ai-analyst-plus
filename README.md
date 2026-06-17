@@ -32,12 +32,11 @@ cd ai-analyst-plus
 pip install -e ".[dev]"
 ```
 
-**2. Generate sample data** (optional — you can connect your own)
+**2. Connect your data** (optional)
 
-```bash
-pip install -r data-generation/requirements.txt
-python data-generation/generate.py
-```
+In Claude Code, run `/connect-data` to wire up a warehouse (DuckDB, Postgres,
+BigQuery, Snowflake) or a CSV directory. Curated public datasets with guides live
+in `data/examples/`.
 
 **3. Start Claude Code**
 
@@ -221,13 +220,8 @@ The system auto-profiles your data, creates schema documentation, and remembers 
 
 ### Sample data
 
-Generate a synthetic e-commerce dataset for practice:
-
-```bash
-python data-generation/generate.py
-```
-
-Or bring your own. Curated public datasets with README guides are available in `data/examples/`.
+Bring your own data via `/connect-data` (DuckDB, Postgres, BigQuery, Snowflake, or
+a CSV directory). Curated public datasets with README guides are available in `data/examples/`.
 
 ---
 
@@ -250,7 +244,6 @@ ai-analyst-plus/
 │   └── datasets/                # Per-dataset manifest, schema, quirks
 ├── themes/                      # Marp CSS themes (light + dark)
 ├── templates/                   # Marp deck templates, HTML components
-├── data-generation/             # Synthetic data generator
 ├── outputs/                     # Final deliverables (analyses, charts, decks)
 └── working/                     # Intermediate files (gitignored)
 ```

@@ -136,3 +136,9 @@ snowflake-mcp-config.yaml
 *.tar.gz
 *.rar
 *.7z
+
+# User experiment runs (do not commit)
+experiments/
+
+# Reliability check run output (audit trail, not source)
+.knowledge/reliability/

@@ -34,7 +34,7 @@ patterns, and form hypotheses before committing to a formal analysis.
 **If .knowledge/ files don't exist (common for new users), fall back:**
 1. Look for data in these locations (in order):
    - `data/examples/*.csv` (shared example datasets)
-   - `data/practice/*.csv` (only populated if the user ran `data-generation/generate_all.py`)
+   - `data/practice/*.csv` (if a local practice dataset is present)
    - `tests/fixtures/*.csv` (test data)
 2. Use the first location where data is found
 3. Infer schema by reading a sample of the data
