@@ -1,6 +1,6 @@
 """Tests for the input-tree restatement guardrail.
 
-Anchored on the real NovaMart bug: when the NSM is a headcount (Weekly Active
+Anchored on a real headcount-NSM bug: when the NSM is a headcount (Weekly Active
 Buyers), BDEF's Breadth lever IS that headcount, so the decomposition is
 degenerate. The skill must reject it. When the NSM is a throughput count (Weekly
 Completed Orders), Breadth = buyers is a genuine driver and must pass.
@@ -11,7 +11,7 @@ import pytest
 from helpers.north_star.input_tree import check_input_tree, _cov
 
 
-# Real-shaped monthly NovaMart series (Jan..Dec 2024), rounded.
+# Real-shaped monthly series (Jan..Dec, full year), rounded.
 BUYERS = [985, 1374, 1779, 2225, 2545, 2669, 3114, 3506, 3939, 4417, 5682, 5833]
 FREQ = [1.22, 1.23, 1.22, 1.24, 1.23, 1.25, 1.26, 1.24, 1.24, 1.25, 1.26, 1.26]
 EFF = [0.866, 0.858, 0.851, 0.853, 0.85, 0.849, 0.847, 0.851, 0.85, 0.852, 0.84, 0.838]

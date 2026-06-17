@@ -93,7 +93,7 @@ LEFT JOIN {schema}.{parent_table} p
   ON c.{fk_col} = p.{pk_col};
 ```
 
-Expected FKs in NovaMart-style schemas:
+Expected FKs in a typical e-commerce schema (illustrative example):
 - `orders.user_id` → `users.user_id`
 - `order_items.order_id` → `orders.order_id`
 - `order_items.product_id` → `products.product_id`
@@ -109,7 +109,7 @@ Expected FKs in NovaMart-style schemas:
 - `experiment_assignments.experiment_id` → `experiments.experiment_id`
 - `orders.promo_id` → `promotions.promo_id` (nullable)
 
-Generalize beyond NovaMart by scanning column names for `*_id` patterns.
+Generalize by scanning column names for `*_id` patterns — the FK list above is one example shape, not a required schema.
 
 ### Step 5 — Cross-table date alignment
 
@@ -143,13 +143,11 @@ From `quirks.md`, inline any noted gotchas in the relevant section of the output
 ### Step 8 — Opening thread to pull
 
 Close with one concrete analytical thread. Prefer a thread that:
-1. Matches the dataset's apparent business theme (NovaMart → e-commerce → funnel, Plus membership, support, experiments)
+1. Matches the dataset's apparent business theme (e.g. e-commerce → funnel, membership, support, experiments; SaaS → activation, usage, churn)
 2. Uses the data you just confirmed is present and joinable
 3. Points at a specific decision or question (not "segment by X")
 
-For NovaMart specifically, the canonical opener is: *"The support_tickets table shows weekly ticket volume — want to pull the thread on why Week 23 spiked?"* (This matches the curriculum's framing.)
-
-More generally, pick a thread grounded in the data's strongest signal — a visible spike, a clear cohort split, or a conspicuous gap.
+Pick a thread grounded in the data's strongest signal — a visible spike, a clear cohort split, or a conspicuous gap. For example: if a `support_tickets` table shows a sharp weekly-volume spike, a strong opener is *"ticket volume jumped in week N — want to pull the thread on what drove it?"*
 
 ### Step 9 — Log every query
 

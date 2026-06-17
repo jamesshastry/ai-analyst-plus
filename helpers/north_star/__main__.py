@@ -117,7 +117,15 @@ def _cmd_drivers(args: argparse.Namespace) -> int:
     """
     from helpers.north_star import drivers as drv
     data = args.data or str(drv.DEFAULT_DATA)
-    stats = drv.compute(data, start=args.start, end=args.end, nsm=args.nsm)
+    name = args.name
+    if not name:
+        # Default to the active dataset's display name — never hardcode.
+        try:
+            from helpers.data_helpers import detect_active_source
+            name = (detect_active_source() or {}).get("display_name")
+        except Exception:
+            name = None
+    stats = drv.compute(data, start=args.start, end=args.end, nsm=args.nsm, name=name)
     out = __import__("pathlib").Path(args.out)
     if args.format in ("md", "both"):
         out.with_suffix(".md").write_text(drv.render_md(stats), encoding="utf-8")
@@ -169,6 +177,7 @@ def main(argv=None) -> int:
     p.add_argument("--start", default=None, help="window start YYYY-MM (default: first full month)")
     p.add_argument("--end", default=None, help="window end YYYY-MM (default: last full month)")
     p.add_argument("--nsm", default="weekly completed orders")
+    p.add_argument("--name", default=None, help="report label (default: active dataset display name)")
     p.add_argument("--out", default="outputs/north-star/drivers_report.md")
     p.add_argument("--format", choices=["md", "html", "both"], default="both")
     p.set_defaults(func=_cmd_drivers)

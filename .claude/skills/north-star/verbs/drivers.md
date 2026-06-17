@@ -29,8 +29,9 @@ shows up live.
 
 ### 2. Confirm the dataset
 
-`/datasets` should show the source (NovaMart for the demo; `data/practice/orders.csv`).
-The engine reads `orders.csv` from the data dir. If no dataset, tell the user to
+`/datasets` should show the active source. The engine reads `orders.csv` from that
+dataset's data dir, and the report label defaults to the active dataset's display
+name (override with `--name`). If no dataset, tell the user to
 `/connect-data` first.
 
 ### 3. Run the deterministic engine
@@ -69,16 +70,16 @@ Open the HTML (`open <out>.html`) — the Economist report with the diverging ch
 and summarize the headline out loud: the growth multiple, the Breadth share, and the
 Depth guardrail. The markdown version is the paste-to-Slack copy.
 
-## Demo defaults (NovaMart, full year)
+## What the report shows
 
-`/north-star drivers "weekly completed orders"` over Jan–Dec 2024 produces, every run:
-- **6.0×** growth (1,037 → 6,215 orders/mo), Black Friday peak 2,387/wk
-- **Breadth +99%**, Frequency +2%, Efficiency −1% (the three multiply into the NSM)
-- **Depth guardrail: AOV −9%** ($80 → $73)
-- repeat rate 34.9%, Plus 3.4% (1.50 vs 1.48 — no lift)
+For a `weekly completed orders` NSM over a full year, the engine reports, deterministically:
+- the **growth multiple** (start → end orders/mo) and the peak week
+- the **Breadth × Frequency × Efficiency** split (the three multiply into the NSM)
+- the **Depth guardrail** (AOV change over the window)
+- repeat rate and membership lift
 
-These match the lesson slides exactly. Pass `--window 2024-02:2024-11` to read the
-structural year with Black Friday excluded.
+Same window in → same numbers out, every run. Pass `--start/--end` to read a
+different window (e.g. excluding an end-of-year spike).
 
 ## Failure modes
 

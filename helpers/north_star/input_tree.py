@@ -32,7 +32,7 @@ from typing import Optional, Sequence
 # single fixed k, so the per-period ratio (input/NSM) is constant to machine
 # precision. We must test EXACTNESS, not "approximately constant": a genuine
 # dominant driver can have a near-constant ratio purely because the OTHER drivers
-# were flat that period (NovaMart's buyers/orders ratio wobbles only ~0.4% because
+# were flat that period (e.g. a buyers/orders ratio can wobble only ~0.4% because
 # frequency and efficiency barely moved — yet buyers is a real driver, not a copy).
 # Only an exact/rescaled copy gets a ratio CoV at the floating-point floor.
 RESTATEMENT_COV = 1e-6
