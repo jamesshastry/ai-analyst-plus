@@ -76,6 +76,21 @@ question) and **`distribution-profiler`** (column-level — different grain) sta
 `data-map` distinction; the depth-routing must be re-encoded carefully or first-contact UX regresses.
 This is the highest-value *and* highest-care merge.
 
+> **REASSESSED ON EXECUTION (2026-06-18) — chose the de-collide approach (option A):** like #1/#2,
+> these aren't redundant — they're differentiated by depth, and Rules 18/19 exist *because* they're
+> distinct. A 6→3 collapse would delete working skills and force a Rules 18/19 rewrite (highest risk
+> in the cleanup). Instead, added a DISAMBIGUATION clause to all four (`data-inspect` = `/data` schema;
+> `data-map` = dataset-wide health/relationships, first contact; `explore` = interactive poke-around;
+> `data-profiling` = deep stats) so each owns its depth. `datasets` + `distribution-profiler` left
+> standalone. Rules 18/19 untouched. No merge, no deletion, no UX regression. **#3 done.**
+
+---
+
+## Outcome (all three)
+None of the three was actually a "merge." On contact each dissolved into the same root cause —
+**overlapping trigger words on genuinely distinct skills** — fixed by sharpening descriptions, not
+deleting anything. Zero skills removed; routing collisions resolved; all behavior preserved.
+
 ---
 
 ## Cluster 3 — Export (`export` + `google-doc-export`, `google-slides-export`, `notion-export`, `chart-to-drive`)
