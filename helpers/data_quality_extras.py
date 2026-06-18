@@ -1,8 +1,8 @@
-"""Data quality utilities — rescued from tieout_helpers.py.
+"""Data quality utilities — source-agnostic DataFrame checks.
 
-These functions operate on pandas DataFrames and are source-agnostic.
-They were originally part of tieout_helpers.py but are not tied to
-the dual-path comparison paradigm.
+These functions operate on pandas DataFrames and are not tied to any
+particular comparison paradigm. Use them directly (e.g. for null-concentration
+and outlier checks); for cross-source verification see `cross_verification.py`.
 
 Usage:
     from helpers.data_quality_extras import (
