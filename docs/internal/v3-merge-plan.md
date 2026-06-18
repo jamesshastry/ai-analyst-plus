@@ -39,18 +39,20 @@ Surface area today: **69 skills · 44 agents · 47 helpers · 35 tests.**
 
 ---
 
-## Phase A — Strip course / build scaffolding
+## Phase A — Strip course / build scaffolding  ✅ DONE
 
-### A1. Internal build docs (delete or move to `docs/internal/`)
-- [ ] `BUILD_STATUS.yaml` (41 KB) · `WEEK4_COVERAGE_MAP.md` (46 KB) · `GDOC_EXPORT_MASTER_PLAN.md` (29 KB) · `HISTORY.md` · `CHANGELOG.md` (NovaMart-specific → replace with clean product changelog)
+### A1. Internal build docs — removed ✅
+`BUILD_STATUS.yaml` · `WEEK4_COVERAGE_MAP.md` · `GDOC_EXPORT_MASTER_PLAN.md` · `HISTORY.md`
+deleted (recoverable from history). `CHANGELOG.md` KEPT — it's a proper semver changelog,
+not NovaMart-specific (its NovaMart line is a correct "removed bundled dataset" entry).
 
-### A2. Community / class skills — DECIDED
-- **KEEP:** `kickoff`, `show-off`
-- [ ] **CUT:** `show-off-linkedin`, `certificate`, `demo` (+ `agents/demo-breakout.md`), `first-run-welcome`
-- [ ] Deregister each from `CLAUDE.md`, `agents/INDEX.md`, `agents/registry.yaml`
-- Keepers confirmed: `setup`, `connect-data`, `architect`
+### A2. Community / class skills — removed ✅
+- **KEPT:** `kickoff`, `show-off`, `setup`, `connect-data`, `architect`
+- **CUT:** `show-off-linkedin`, `certificate` (+ `render-certificate.mjs` + `auto_certificate`
+  config), `demo` (+ `agents/demo-breakout.md`), `first-run-welcome` (+ its cross-refs in
+  knowledge-bootstrap / north-star skill + obsolete test fixture). Deregistered everywhere.
 
-### A3. Already removed ✅
+### A3. Earlier removals ✅
 always-compare · color-commentary · drop-off-format · skeptical-reviewer · groww-bot · pm-* dev team · build-data-product
 
 ---
