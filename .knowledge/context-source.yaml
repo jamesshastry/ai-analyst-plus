@@ -9,7 +9,7 @@
 # hidden with the eval harness, or the agent reads the answers and cheats).
 
 source: git                                          # local | git
-repo: /Users/shanebutler/projects/novamart-context   # a local path or a GitHub URL (e.g. git@github.com:org/novamart-context.git)
+repo: https://github.com/ai-analyst-lab/novamart-context.git   # a local path or a GitHub URL (e.g. git@github.com:org/novamart-context.git)
 ref: main                                            # branch or a pinned commit SHA
 dataset_path: datasets/novamart                      # where this dataset's semantic/ + metrics/ live in the repo
 cache: .knowledge/.context-cache                     # where the bootstrap syncs the repo to (gitignored)
