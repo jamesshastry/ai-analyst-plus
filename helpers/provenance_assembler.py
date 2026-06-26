@@ -511,6 +511,122 @@ def render_provenance_appendix(block: ProvenanceBlock) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Source tier — where a number came from, on a governance hierarchy
+# ---------------------------------------------------------------------------
+
+# The source-tier hierarchy, most governed first. A number is only as trustworthy
+# as the least-governed table it was read from, so the footer reports the FLOOR of
+# a query's inputs. The lesson and the slide mirror this list verbatim.
+#
+#   governed  a certified / blessed source, signed off by a data owner
+#   curated   a semantic-layer / verified-query source (modeled, not yet certified)
+#   raw       a direct table query, ungoverned (the honest default)
+#
+# Each row is (tier_key, rendered_label, one_line_meaning).
+SOURCE_TIER_HIERARCHY: List[tuple[str, str, str]] = [
+    ("governed", "governed - certified source",
+     "a certified / blessed source, signed off by a data owner"),
+    ("curated", "curated - semantic-layer source",
+     "a semantic-layer / verified-query source, modeled but not certified"),
+    ("raw", "raw - direct query",
+     "a direct table query, ungoverned"),
+]
+
+# Tier keys, named so callers and tests don't pass bare strings.
+TIER_GOVERNED = "governed"
+TIER_CURATED = "curated"
+TIER_RAW = "raw"
+
+# Derived lookups: rank (higher = more governed) and the rendered label per key.
+_TIER_RANK: Dict[str, int] = {
+    key: len(SOURCE_TIER_HIERARCHY) - i - 1
+    for i, (key, _label, _meaning) in enumerate(SOURCE_TIER_HIERARCHY)
+}
+_TIER_LABEL: Dict[str, str] = {
+    key: label for key, label, _meaning in SOURCE_TIER_HIERARCHY
+}
+
+
+def load_tier_metadata(entities: Any) -> Dict[str, str]:
+    """Build a table-name -> tier map from parsed semantic-layer entities.
+
+    Reads the OPTIONAL ``source_tier`` field on each entity in entities.yaml.
+    ``entities`` may be the parsed top-level dict (with an ``entities`` list) or
+    the list itself. An entity whose ``source_tier`` is "governed" or "curated"
+    contributes its base_table, logical_table, and entity name to the map (keys
+    upper-cased for case-insensitive match); an entity without the field
+    contributes nothing, so it falls through to raw.
+
+    Today NovaMart's entities.yaml carries no ``source_tier`` on any entity, so
+    this returns an empty map and every NovaMart query reads as raw — the honest
+    tier. Adding ``source_tier: governed`` to one entity is the one-line change
+    that upgrades that table's footer, and this loader is what reads it.
+
+    Args:
+        entities: parsed entities.yaml (dict with "entities", or a list of dicts).
+
+    Returns:
+        dict mapping each table/entity name (upper-cased) -> tier key.
+    """
+    if isinstance(entities, dict):
+        entity_list = entities.get("entities", [])
+    else:
+        entity_list = entities or []
+
+    out: Dict[str, str] = {}
+    valid = {TIER_GOVERNED, TIER_CURATED}
+    for ent in entity_list:
+        if not isinstance(ent, dict):
+            continue
+        tier = ent.get("source_tier")
+        if tier not in valid:
+            continue
+        for key in (ent.get("base_table"), ent.get("logical_table"), ent.get("entity")):
+            if key:
+                out[str(key).upper()] = tier
+    return out
+
+
+def derive_source_tier(
+    tables_accessed: Optional[List[str]],
+    tier_metadata: Optional[Dict[str, str]] = None,
+) -> str:
+    """Return the rendered source-tier label for a query, given the tables it touched.
+
+    The tier sits on the governance hierarchy governed > curated > raw
+    (see SOURCE_TIER_HIERARCHY). ``tier_metadata`` maps a table name -> its tier
+    key ("governed" or "curated"), typically produced by load_tier_metadata from
+    the semantic layer. Matching is case-insensitive on the table name.
+
+    A result is only as governed as its least-governed input, so the tier is the
+    FLOOR across the touched tables: any table without governance metadata counts
+    as raw and drags the whole query to raw. When NO touched table carries
+    governance metadata — the NovaMart case, where entities.yaml pins meaning and
+    structure but assigns no tier — the honest answer is "raw - direct query".
+    This never returns "not available".
+
+    Args:
+        tables_accessed: the tables the backing query read.
+        tier_metadata: optional table-name -> tier key map ("governed"/"curated").
+
+    Returns:
+        A rendered label from SOURCE_TIER_HIERARCHY (e.g. "raw - direct query").
+    """
+    tables = [t for t in (tables_accessed or []) if t]
+    if not tables:
+        return _TIER_LABEL[TIER_RAW]
+
+    norm = {str(k).upper(): v for k, v in (tier_metadata or {}).items()}
+
+    floor_key = TIER_GOVERNED
+    for tbl in tables:
+        tier = norm.get(str(tbl).upper(), TIER_RAW)  # unlabeled table = raw
+        if _TIER_RANK.get(tier, 0) < _TIER_RANK[floor_key]:
+            floor_key = tier
+    return _TIER_LABEL.get(floor_key, _TIER_LABEL[TIER_RAW])
+
+
+# ---------------------------------------------------------------------------
 # Full footer — built fields plus honest placeholders for what is not yet wired
 # ---------------------------------------------------------------------------
 
@@ -519,12 +635,21 @@ def render_provenance_appendix(block: ProvenanceBlock) -> str:
 # rather than a faked value or a silently dropped line.
 NOT_AVAILABLE = "not available"
 
+# The four lifecycle fields, in footer order, with their wiring status:
+#   wired      reads a real derived value (Source tier, Freshness)
+#   not_wired  renders the explicit NOT_AVAILABLE placeholder (Owner, Signals)
+LIFECYCLE_FIELDS: List[tuple[str, str]] = [
+    ("Source tier", "wired"),
+    ("Owner", "not_wired"),
+    ("Freshness", "wired"),
+    ("Signals", "not_wired"),
+]
+
 # Footer fields the assembler does not yet produce. Each is rendered as the
-# explicit NOT_AVAILABLE placeholder until the data behind it is wired.
+# explicit NOT_AVAILABLE placeholder until the data behind it is wired. Source
+# tier and Freshness have since been wired and dropped off this list.
 NOT_YET_WIRED_FIELDS: List[tuple[str, str]] = [
-    ("Source tier", "governed / curated / raw classification"),
     ("Owner", "from the metric definition, with a Missing fallback"),
-    ("Freshness", "pulled-at timestamp + lag"),
     ("Signals", "the five-signal traffic light"),
 ]
 
@@ -533,6 +658,7 @@ def build_full_footer(
     block: ProvenanceBlock,
     last_verified: Optional[str] = None,
     today: Optional[str] = None,
+    tier_metadata: Optional[Dict[str, str]] = None,
 ) -> str:
     """Render the complete provenance footer for a finding.
 
@@ -541,11 +667,16 @@ def build_full_footer(
     backing query-id links, and the confidence grade/score embedded in the data
     stamp), then shows the four lifecycle fields.
 
+    Source tier is wired: it is derived from the tables the backing query touched
+    (block reproducibility tables, falling back to the data-stamp primary table)
+    against any governance metadata in ``tier_metadata`` (see derive_source_tier
+    and load_tier_metadata). With no governance metadata — the NovaMart case — it
+    reads "raw - direct query", never "not available".
+
     Freshness is wired: when the caller supplies the definition's last_verified
     date (and today), the Freshness field reads the real green/yellow/red color
     and age, drawn from helpers.freshness. With no last_verified available it
-    falls back to the explicit "not available" placeholder, the same as the
-    other three not-yet-wired fields.
+    falls back to the explicit "not available" placeholder.
 
     The remaining placeholders are deliberate. The footer shows every field, and
     a field reads "not available" when the data behind it is not yet produced.
@@ -553,7 +684,7 @@ def build_full_footer(
     cannot yet stand behind, instead of a faked value or a quietly omitted line.
 
     Lifecycle fields:
-      - Source tier   (governed / curated / raw classification) - not yet wired
+      - Source tier   (governed / curated / raw classification) - wired here
       - Owner         (from the metric definition, with a Missing fallback) - not yet wired
       - Freshness     (last-verified date + green/yellow/red color) - wired here
       - Signals       (the five-signal traffic light) - not yet wired
@@ -564,21 +695,38 @@ def build_full_footer(
             or None when no freshness metadata is available.
         today: the date to measure freshness against (YYYY-MM-DD). Passed in so
             the footer is deterministic; required for a real Freshness read.
+        tier_metadata: optional table-name -> tier key map for source-tier
+            derivation. None (the default) means no governance metadata, so the
+            tier reads raw.
 
     Returns:
         Markdown string: the appendix entry followed by the four lifecycle lines.
     """
     parts = [render_provenance_appendix(block), ""]
 
+    # Source tier — derived from the tables the backing query touched.
+    repro = block.get("reproducibility") or {}
+    tables = list(repro.get("tables") or [])
+    if not tables:
+        primary = (block.get("data_stamp") or {}).get("primary_table")
+        if primary:
+            tables = [primary]
+    source_tier_value = derive_source_tier(tables, tier_metadata)
+
+    # Freshness — real color/age when last_verified is supplied, else placeholder.
     freshness_value = NOT_AVAILABLE
     if last_verified and today:
         age_days, color = freshness(last_verified, today)
         if color != COLOR_MISSING:
             freshness_value = f"{color} (verified {last_verified}, {age_days}d ago)"
 
-    for label, _description in NOT_YET_WIRED_FIELDS:
-        if label == "Freshness":
-            parts.append(f"**Freshness:** {freshness_value}")
+    wired_values = {
+        "Source tier": source_tier_value,
+        "Freshness": freshness_value,
+    }
+    for label, status in LIFECYCLE_FIELDS:
+        if status == "wired":
+            parts.append(f"**{label}:** {wired_values[label]}")
         else:
             parts.append(f"**{label}:** {NOT_AVAILABLE}")
     return "\n".join(parts)

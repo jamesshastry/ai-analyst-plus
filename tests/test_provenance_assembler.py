@@ -9,9 +9,16 @@ from helpers.provenance_assembler import (
     ProvenanceBlock,
     NOT_AVAILABLE,
     NOT_YET_WIRED_FIELDS,
+    LIFECYCLE_FIELDS,
+    SOURCE_TIER_HIERARCHY,
+    TIER_GOVERNED,
+    TIER_CURATED,
+    TIER_RAW,
     build_data_stamp,
     build_full_footer,
     build_provenance_blocks,
+    derive_source_tier,
+    load_tier_metadata,
     format_row_count,
     render_data_stamp,
     render_provenance_appendix,
@@ -415,12 +422,18 @@ class TestBuildFullFooter:
         assert "**Methodology:** segmented comparison" in md
         assert "Confidence: B (82/100)" in md
 
-    def test_includes_four_placeholders(self):
+    def test_source_tier_reads_raw_for_novamart(self):
+        # No governance metadata -> the honest tier is raw, never "not available".
         md = build_full_footer(self._block())
-        assert f"**Source tier:** {NOT_AVAILABLE}" in md
+        assert "**Source tier:** raw - direct query" in md
+        assert f"**Source tier:** {NOT_AVAILABLE}" not in md
+
+    def test_owner_and_signals_stay_not_available(self):
+        md = build_full_footer(self._block())
         assert f"**Owner:** {NOT_AVAILABLE}" in md
-        assert f"**Freshness:** {NOT_AVAILABLE}" in md
         assert f"**Signals:** {NOT_AVAILABLE}" in md
+        # Freshness without dates also stays not available.
+        assert f"**Freshness:** {NOT_AVAILABLE}" in md
 
     def test_placeholder_value_is_not_available(self):
         assert NOT_AVAILABLE == "not available"
@@ -430,11 +443,22 @@ class TestBuildFullFooter:
 
     def test_all_four_fields_present(self):
         md = build_full_footer(self._block())
-        labels = [label for label, _ in NOT_YET_WIRED_FIELDS]
+        # All four lifecycle fields render, in order, exactly once.
+        labels = [label for label, _ in LIFECYCLE_FIELDS]
         assert labels == ["Source tier", "Owner", "Freshness", "Signals"]
-        # Every not-yet-wired field shows exactly once with the placeholder.
         for label in labels:
-            assert md.count(f"**{label}:** {NOT_AVAILABLE}") == 1
+            assert md.count(f"**{label}:**") == 1
+        # The two genuinely-not-wired fields still show the placeholder.
+        not_wired = [label for label, _ in NOT_YET_WIRED_FIELDS]
+        assert not_wired == ["Owner", "Signals"]
+        for label in not_wired:
+            assert f"**{label}:** {NOT_AVAILABLE}" in md
+
+    def test_source_tier_upgrades_with_governance_metadata(self):
+        # When the touched table carries governance metadata, the tier upgrades.
+        tier_metadata = {"EVENTS": TIER_GOVERNED}
+        md = build_full_footer(self._block(), tier_metadata=tier_metadata)
+        assert "**Source tier:** governed - certified source" in md
 
     def test_placeholders_follow_built_fields(self):
         md = build_full_footer(self._block())
@@ -447,8 +471,8 @@ class TestBuildFullFooter:
         md = build_full_footer(self._block(), last_verified="2026-06-25", today="2026-06-26")
         assert f"**Freshness:** {NOT_AVAILABLE}" not in md
         assert "**Freshness:** green (verified 2026-06-25, 1d ago)" in md
-        # The other three lifecycle fields stay not available.
-        assert f"**Source tier:** {NOT_AVAILABLE}" in md
+        # Source tier reads a real (raw) tier; Owner and Signals stay not available.
+        assert "**Source tier:** raw - direct query" in md
         assert f"**Owner:** {NOT_AVAILABLE}" in md
         assert f"**Signals:** {NOT_AVAILABLE}" in md
 
@@ -471,8 +495,96 @@ class TestBuildFullFooter:
         }]
         block = build_provenance_blocks(findings)[0]
         md = build_full_footer(block)
-        # Even with no SQL/methodology, all four placeholders still render.
-        assert f"**Source tier:** {NOT_AVAILABLE}" in md
+        # Even with no SQL/methodology, all four lifecycle fields still render.
+        assert "**Source tier:** raw - direct query" in md
         assert f"**Owner:** {NOT_AVAILABLE}" in md
         assert f"**Freshness:** {NOT_AVAILABLE}" in md
         assert f"**Signals:** {NOT_AVAILABLE}" in md
+
+
+# ── derive_source_tier ───────────────────────────────────────────────────
+
+class TestDeriveSourceTier:
+    def test_raw_when_no_metadata(self):
+        # The NovaMart case: tables touched, but no governance metadata at all.
+        assert derive_source_tier(["ORDERS"]) == "raw - direct query"
+        assert derive_source_tier(["ORDERS", "ORDER_ITEMS"], {}) == "raw - direct query"
+
+    def test_raw_never_returns_not_available(self):
+        assert derive_source_tier(["ORDERS"]) != NOT_AVAILABLE
+
+    def test_no_tables_is_raw(self):
+        assert derive_source_tier([]) == "raw - direct query"
+        assert derive_source_tier(None) == "raw - direct query"
+
+    def test_curated_tier(self):
+        meta = {"ORDERS": TIER_CURATED}
+        assert derive_source_tier(["ORDERS"], meta) == "curated - semantic-layer source"
+
+    def test_governed_tier(self):
+        meta = {"ORDERS": TIER_GOVERNED}
+        assert derive_source_tier(["ORDERS"], meta) == "governed - certified source"
+
+    def test_case_insensitive_table_match(self):
+        meta = {"ORDERS": TIER_GOVERNED}
+        assert derive_source_tier(["orders"], meta) == "governed - certified source"
+
+    def test_floor_wins_mixed_tiers(self):
+        # governed + curated -> curated is the floor (least governed).
+        meta = {"ORDERS": TIER_GOVERNED, "EVENTS": TIER_CURATED}
+        assert derive_source_tier(["ORDERS", "EVENTS"], meta) == "curated - semantic-layer source"
+
+    def test_unlabeled_table_drags_to_raw(self):
+        # One governed table, one with no metadata -> raw (only as governed as the weakest input).
+        meta = {"ORDERS": TIER_GOVERNED}
+        assert derive_source_tier(["ORDERS", "EVENTS"], meta) == "raw - direct query"
+
+    def test_all_governed_stays_governed(self):
+        meta = {"ORDERS": TIER_GOVERNED, "ORDER_ITEMS": TIER_GOVERNED}
+        assert derive_source_tier(["ORDERS", "ORDER_ITEMS"], meta) == "governed - certified source"
+
+    def test_hierarchy_constant_shape(self):
+        # The hierarchy a lesson/slide mirrors: governed > curated > raw, most governed first.
+        keys = [k for k, _label, _meaning in SOURCE_TIER_HIERARCHY]
+        assert keys == ["governed", "curated", "raw"]
+        labels = {k: label for k, label, _meaning in SOURCE_TIER_HIERARCHY}
+        assert labels["raw"] == "raw - direct query"
+
+
+# ── load_tier_metadata ───────────────────────────────────────────────────
+
+class TestLoadTierMetadata:
+    def test_empty_when_no_source_tier_field(self):
+        # NovaMart's real shape: entities pin meaning/structure, no source_tier.
+        entities = {"entities": [
+            {"entity": "order", "logical_table": "orders",
+             "base_table": "BOOTCAMP_DB.NOVAMART.ORDERS", "primary_key": "order_id"},
+        ]}
+        assert load_tier_metadata(entities) == {}
+
+    def test_reads_governed_entity(self):
+        entities = {"entities": [
+            {"entity": "order", "logical_table": "orders",
+             "base_table": "BOOTCAMP_DB.NOVAMART.ORDERS", "source_tier": "governed"},
+        ]}
+        meta = load_tier_metadata(entities)
+        # All three names a query might log resolve to the tier (upper-cased).
+        assert meta["BOOTCAMP_DB.NOVAMART.ORDERS"] == TIER_GOVERNED
+        assert meta["ORDERS"] == TIER_GOVERNED
+        assert meta["ORDER"] == TIER_GOVERNED
+
+    def test_accepts_bare_list(self):
+        entities = [{"entity": "order", "logical_table": "orders", "source_tier": "curated"}]
+        meta = load_tier_metadata(entities)
+        assert meta["ORDERS"] == TIER_CURATED
+
+    def test_ignores_invalid_tier(self):
+        entities = [{"entity": "order", "logical_table": "orders", "source_tier": "bogus"}]
+        assert load_tier_metadata(entities) == {}
+
+    def test_end_to_end_governed_footer(self):
+        # Loader output feeds derive_source_tier and upgrades the footer.
+        entities = [{"entity": "event", "logical_table": "events",
+                     "base_table": "BOOTCAMP_DB.NOVAMART.EVENTS", "source_tier": "governed"}]
+        meta = load_tier_metadata(entities)
+        assert derive_source_tier(["EVENTS"], meta) == "governed - certified source"
