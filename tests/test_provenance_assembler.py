@@ -442,6 +442,25 @@ class TestBuildFullFooter:
         assert md.index("**Source tier:**") > md.index("### F1:")
         assert md.index("**Source tier:**") > md.index("```sql")
 
+    def test_freshness_reads_real_color_when_last_verified_supplied(self):
+        # With a last_verified date and today, Freshness reads the real color, not the placeholder.
+        md = build_full_footer(self._block(), last_verified="2026-06-25", today="2026-06-26")
+        assert f"**Freshness:** {NOT_AVAILABLE}" not in md
+        assert "**Freshness:** green (verified 2026-06-25, 1d ago)" in md
+        # The other three lifecycle fields stay not available.
+        assert f"**Source tier:** {NOT_AVAILABLE}" in md
+        assert f"**Owner:** {NOT_AVAILABLE}" in md
+        assert f"**Signals:** {NOT_AVAILABLE}" in md
+
+    def test_freshness_red_color_when_stale(self):
+        md = build_full_footer(self._block(), last_verified="2026-01-01", today="2026-06-26")
+        assert "**Freshness:** red (verified 2026-01-01," in md
+
+    def test_freshness_falls_back_without_dates(self):
+        # No last_verified -> Freshness stays not available (the existing behavior).
+        md = build_full_footer(self._block())
+        assert f"**Freshness:** {NOT_AVAILABLE}" in md
+
     def test_minimal_block_still_shows_placeholders(self):
         findings = [{
             "finding_id": "F1",

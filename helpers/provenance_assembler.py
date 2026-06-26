@@ -31,6 +31,8 @@ import re
 import textwrap
 from typing import Any, Dict, List, Optional, TypedDict
 
+from helpers.freshness import COLOR_MISSING, freshness
+
 
 # ---------------------------------------------------------------------------
 # TypedDicts — structured schemas for provenance data
@@ -527,33 +529,56 @@ NOT_YET_WIRED_FIELDS: List[tuple[str, str]] = [
 ]
 
 
-def build_full_footer(block: ProvenanceBlock) -> str:
+def build_full_footer(
+    block: ProvenanceBlock,
+    last_verified: Optional[str] = None,
+    today: Optional[str] = None,
+) -> str:
     """Render the complete provenance footer for a finding.
 
     This is the full teaching shape of the footer. It starts with the built
     fields (data stamp, SQL, methodology, cross-verification, reproducibility,
     backing query-id links, and the confidence grade/score embedded in the data
-    stamp), then always shows the four fields whose backing data is not yet
-    wired, each rendered as the explicit placeholder "not available".
+    stamp), then shows the four lifecycle fields.
 
-    The placeholders are deliberate. The footer shows every field, and a field
-    reads "not available" when the data behind it is not yet produced. That is
-    itself a provenance signal: the reader can see what the system cannot yet
-    stand behind, instead of a faked value or a quietly omitted line.
+    Freshness is wired: when the caller supplies the definition's last_verified
+    date (and today), the Freshness field reads the real green/yellow/red color
+    and age, drawn from helpers.freshness. With no last_verified available it
+    falls back to the explicit "not available" placeholder, the same as the
+    other three not-yet-wired fields.
 
-    Not-yet-wired fields:
-      - Source tier   (governed / curated / raw classification)
-      - Owner         (from the metric definition, with a Missing fallback)
-      - Freshness     (pulled-at timestamp + lag)
-      - Signals       (the five-signal traffic light)
+    The remaining placeholders are deliberate. The footer shows every field, and
+    a field reads "not available" when the data behind it is not yet produced.
+    That is itself a provenance signal: the reader can see what the system
+    cannot yet stand behind, instead of a faked value or a quietly omitted line.
+
+    Lifecycle fields:
+      - Source tier   (governed / curated / raw classification) - not yet wired
+      - Owner         (from the metric definition, with a Missing fallback) - not yet wired
+      - Freshness     (last-verified date + green/yellow/red color) - wired here
+      - Signals       (the five-signal traffic light) - not yet wired
 
     Args:
         block: ProvenanceBlock dict.
+        last_verified: the backing definition's last-verified date (YYYY-MM-DD),
+            or None when no freshness metadata is available.
+        today: the date to measure freshness against (YYYY-MM-DD). Passed in so
+            the footer is deterministic; required for a real Freshness read.
 
     Returns:
-        Markdown string: the appendix entry followed by the four placeholder lines.
+        Markdown string: the appendix entry followed by the four lifecycle lines.
     """
     parts = [render_provenance_appendix(block), ""]
+
+    freshness_value = NOT_AVAILABLE
+    if last_verified and today:
+        age_days, color = freshness(last_verified, today)
+        if color != COLOR_MISSING:
+            freshness_value = f"{color} (verified {last_verified}, {age_days}d ago)"
+
     for label, _description in NOT_YET_WIRED_FIELDS:
-        parts.append(f"**{label}:** {NOT_AVAILABLE}")
+        if label == "Freshness":
+            parts.append(f"**Freshness:** {freshness_value}")
+        else:
+            parts.append(f"**{label}:** {NOT_AVAILABLE}")
     return "\n".join(parts)
