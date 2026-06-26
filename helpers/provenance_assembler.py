@@ -506,3 +506,54 @@ def render_provenance_appendix(block: ProvenanceBlock) -> str:
         parts.append(f"**Backing queries:** {', '.join(block['query_ids'])}")
 
     return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Full footer — built fields plus honest placeholders for what is not yet wired
+# ---------------------------------------------------------------------------
+
+# Placeholder value for footer fields whose backing data is not yet produced.
+# Shown verbatim so the reader can see what the system cannot yet stand behind,
+# rather than a faked value or a silently dropped line.
+NOT_AVAILABLE = "not available"
+
+# Footer fields the assembler does not yet produce. Each is rendered as the
+# explicit NOT_AVAILABLE placeholder until the data behind it is wired.
+NOT_YET_WIRED_FIELDS: List[tuple[str, str]] = [
+    ("Source tier", "governed / curated / raw classification"),
+    ("Owner", "from the metric definition, with a Missing fallback"),
+    ("Freshness", "pulled-at timestamp + lag"),
+    ("Signals", "the five-signal traffic light"),
+]
+
+
+def build_full_footer(block: ProvenanceBlock) -> str:
+    """Render the complete provenance footer for a finding.
+
+    This is the full teaching shape of the footer. It starts with the built
+    fields (data stamp, SQL, methodology, cross-verification, reproducibility,
+    backing query-id links, and the confidence grade/score embedded in the data
+    stamp), then always shows the four fields whose backing data is not yet
+    wired, each rendered as the explicit placeholder "not available".
+
+    The placeholders are deliberate. The footer shows every field, and a field
+    reads "not available" when the data behind it is not yet produced. That is
+    itself a provenance signal: the reader can see what the system cannot yet
+    stand behind, instead of a faked value or a quietly omitted line.
+
+    Not-yet-wired fields:
+      - Source tier   (governed / curated / raw classification)
+      - Owner         (from the metric definition, with a Missing fallback)
+      - Freshness     (pulled-at timestamp + lag)
+      - Signals       (the five-signal traffic light)
+
+    Args:
+        block: ProvenanceBlock dict.
+
+    Returns:
+        Markdown string: the appendix entry followed by the four placeholder lines.
+    """
+    parts = [render_provenance_appendix(block), ""]
+    for label, _description in NOT_YET_WIRED_FIELDS:
+        parts.append(f"**{label}:** {NOT_AVAILABLE}")
+    return "\n".join(parts)

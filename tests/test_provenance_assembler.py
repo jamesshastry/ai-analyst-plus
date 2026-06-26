@@ -7,7 +7,10 @@ import pytest
 from helpers.provenance_assembler import (
     DataStamp,
     ProvenanceBlock,
+    NOT_AVAILABLE,
+    NOT_YET_WIRED_FIELDS,
     build_data_stamp,
+    build_full_footer,
     build_provenance_blocks,
     format_row_count,
     render_data_stamp,
@@ -382,3 +385,75 @@ class TestRenderProvenanceAppendix:
         # Should not have SQL or methodology sections
         assert "```sql" not in md
         assert "**Methodology:**" not in md
+
+
+# ── build_full_footer ────────────────────────────────────────────────────
+
+class TestBuildFullFooter:
+    def _block(self):
+        findings = [{
+            "finding_id": "F1",
+            "finding_title": "Mobile converts at half the rate",
+            "row_count": 50000,
+            "date_range": "Jan-Mar 2026",
+            "primary_table": "EVENTS",
+            "sql": "SELECT device, COUNT(*) FROM events GROUP BY device",
+            "methodology": {
+                "approach": "segmented comparison",
+                "aggregation": "COUNT by device",
+                "filters": [],
+                "date_handling": "monthly",
+            },
+        }]
+        return build_provenance_blocks(findings, confidence_result={"grade": "B", "score": 82})[0]
+
+    def test_includes_built_fields(self):
+        md = build_full_footer(self._block())
+        # Built fields stay live in the footer.
+        assert "### F1: Mobile converts at half the rate" in md
+        assert "```sql" in md
+        assert "**Methodology:** segmented comparison" in md
+        assert "Confidence: B (82/100)" in md
+
+    def test_includes_four_placeholders(self):
+        md = build_full_footer(self._block())
+        assert f"**Source tier:** {NOT_AVAILABLE}" in md
+        assert f"**Owner:** {NOT_AVAILABLE}" in md
+        assert f"**Freshness:** {NOT_AVAILABLE}" in md
+        assert f"**Signals:** {NOT_AVAILABLE}" in md
+
+    def test_placeholder_value_is_not_available(self):
+        assert NOT_AVAILABLE == "not available"
+        # Placeholders are never faked as zeros or empty values.
+        assert NOT_AVAILABLE != "0"
+        assert NOT_AVAILABLE != ""
+
+    def test_all_four_fields_present(self):
+        md = build_full_footer(self._block())
+        labels = [label for label, _ in NOT_YET_WIRED_FIELDS]
+        assert labels == ["Source tier", "Owner", "Freshness", "Signals"]
+        # Every not-yet-wired field shows exactly once with the placeholder.
+        for label in labels:
+            assert md.count(f"**{label}:** {NOT_AVAILABLE}") == 1
+
+    def test_placeholders_follow_built_fields(self):
+        md = build_full_footer(self._block())
+        # The not-available block comes after the built appendix content.
+        assert md.index("**Source tier:**") > md.index("### F1:")
+        assert md.index("**Source tier:**") > md.index("```sql")
+
+    def test_minimal_block_still_shows_placeholders(self):
+        findings = [{
+            "finding_id": "F1",
+            "finding_title": "Simple finding",
+            "row_count": 100,
+            "date_range": "Q1",
+            "primary_table": "T",
+        }]
+        block = build_provenance_blocks(findings)[0]
+        md = build_full_footer(block)
+        # Even with no SQL/methodology, all four placeholders still render.
+        assert f"**Source tier:** {NOT_AVAILABLE}" in md
+        assert f"**Owner:** {NOT_AVAILABLE}" in md
+        assert f"**Freshness:** {NOT_AVAILABLE}" in md
+        assert f"**Signals:** {NOT_AVAILABLE}" in md
