@@ -227,6 +227,7 @@ condition matches -- you do not need to be asked.
 | North Star | `.claude/skills/north-star/skill.md` | Invoked as `/north-star [verb]` — North Star Metric lifecycle coach (design, audit, drivers, inputs, triage). Composes with metric-spec, guardrails, tracking-gaps. |
 | Teach | `.claude/skills/teach/skill.md` | Invoked as `/teach <topic>` — generate teaching visuals for analytics/stats concepts (the specific picture that makes one intuition click). |
 | Skill Creator | `.claude/skills/skill-creator/skill.md` | Invoked as `/skill-creator` — create, edit, and benchmark skills; optimize a skill's description for trigger accuracy. |
+| Skill Parity Review | `.claude/skills/skill-parity-review/skill.md` | Review a Codex skill against its Claude counterpart for parity and migration compatibility, then optionally bring the Claude skill up to parity. Use when comparing `.agents/skills` and `.claude/skills`, porting a Codex skill to Claude, checking skill parity, or auditing a skill migration. |
 
 **How skills work:** Read the skill file when triggered and follow its instructions. Multiple skills can apply at once (e.g., Visualization Patterns + Triangulation).
 
