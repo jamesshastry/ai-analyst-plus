@@ -29,6 +29,21 @@ Example: `/codex-review` after answering "What's our 30-day retention?"
 
 ## Instructions
 
+> ### ⛔ HARD GATE — read before anything else
+> This skill is worthless unless a **different** model (Codex) does the validation. If Codex
+> is not ready, **you (Claude) MUST NOT perform the validation yourself.** Claude re-checking
+> Claude's analysis is circular — it produces a confident "validated ✓" that means nothing and
+> actively misleads the student.
+>
+> **The rule:** if Step 1's preflight returns a non-empty `missing` list, your ONLY job this
+> turn is to help the student set up Codex. You may **not** proceed to Steps 2–7, and you may
+> **not** substitute any other model, your own reasoning, a re-run of the SQL, or an
+> "approximate" check. There is no fallback that uses Claude. Setup *is* the task when Codex
+> is missing — completing it is the helpful outcome, not skipping ahead to a verdict.
+>
+> If you ever catch yourself about to compute or judge a finding while `missing` is non-empty,
+> STOP and return to setup guidance instead.
+
 ### Step 1 — Preflight: is Codex usable? (decision matrix)
 Run the deterministic check:
 ```bash
@@ -56,14 +71,21 @@ It returns JSON: `{"codex_cli", "plugin", "auth", "missing": [...]}`. Route on `
   ```
   (Sign in with a ChatGPT account or an API key.)
 
-**Restart gate.** If the user just installed the **plugin**, STOP here — the plugin's tools
-aren't loaded until they run `/reload-plugins`. Tell them: "Run `/reload-plugins`, then
-re-run `/codex-review`." Do not proceed to validation in this turn. (`auth` is best-effort:
-if `--check` returns `auth: null`, proceed — the live Codex run is the real gate and will
-surface any login error.)
+**If `missing` is non-empty, STOP after giving the setup step.** Do not continue to Step 2.
+Do not validate the analysis with Claude, another model, or a re-run of the SQL — there is no
+non-Codex path (see the Hard Gate above). End the turn with: the one setup step the student
+needs, plus "Once that's done, re-run `/codex-review` and I'll have Codex check it." The next
+invocation re-runs `--check` and proceeds only when `missing` is empty.
 
-Keep this simple and one-step-at-a-time: name only the *first* missing piece, let the user
-fix it, then re-run the check.
+**Restart gate.** If the student just installed the **plugin**, also remind them the plugin's
+tools aren't loaded until they run `/reload-plugins` — so the sequence is install →
+`/reload-plugins` → re-run `/codex-review`. (`auth` is best-effort: if `--check` returns
+`auth: null` with the CLI and plugin present, proceed — the live Codex run is the real gate
+and will surface any login error.)
+
+Keep this simple and one-step-at-a-time: name only the *first* missing piece, let the student
+fix it, then re-run the check. Setup may take two or three turns (CLI, then plugin + reload,
+then login); that is the expected, correct path — not a detour from the "real" work.
 
 ### Step 2 — Resolve what's being validated
 Identify, for the most recent analysis (or the scoped finding):
@@ -154,18 +176,26 @@ On any DISAGREE, offer to re-run the relevant analysis step, define the metric v
 `/metric-spec`, or log the lesson via `/log-correction`.
 
 ## Rules
-1. **Codex must be blind to Claude's numbers.** Never include Claude's SQL, result numbers,
+1. **No Codex, no validation — and no Claude fallback.** If preflight's `missing` is non-empty,
+   stop at setup. Never validate with Claude, another model, your own reasoning, or a re-run of
+   the SQL. A Claude-checks-Claude result is circular and must never be presented as a
+   validation. This is the one rule that cannot be bent. (See the Hard Gate above.)
+2. **Codex must be blind to Claude's numbers.** Never include Claude's SQL, result numbers,
    or conclusions in `brief.md`. If you can't keep them out, the run isn't independent — say
    so rather than presenting a false validation.
-2. **Counting is deterministic.** Verdict tallies come from `codex_validation.py --log`
+3. **Counting is deterministic.** Verdict tallies come from `codex_validation.py --log`
    reading `verdict.json`, never estimated in prose.
-3. **One missing piece at a time** in preflight. Don't dump every install step at once — name
+4. **One missing piece at a time** in preflight. Don't dump every install step at once — name
    the first gap, let the user fix it, re-check.
-4. **Respect the restart gate.** After a plugin install, halt until `/reload-plugins`.
-5. **Same definitions, independent derivation.** Codex answers the *same* question with the
+5. **Respect the restart gate.** After a plugin install, halt until `/reload-plugins`.
+6. **Same definitions, independent derivation.** Codex answers the *same* question with the
    *same* metric definition — only the SQL and numbers are its own.
 
 ## Edge Cases
+- **Codex not installed (the common student case)** → this is NOT a reason to validate with
+  Claude instead. Help the student install/log in to Codex, then stop. The validation happens
+  on the *next* run once `--check` is clean. Doing the analysis yourself here is the single
+  worst failure of this skill — it hands the student a fake "validated ✓".
 - **No recent analysis to validate** → ask the user what to check; offer a path or finding.
 - **Codex can't reach the warehouse** → the brief should hand it the local DuckDB/CSV
   fallback (`manifest.local_data`) so it can still derive independently.

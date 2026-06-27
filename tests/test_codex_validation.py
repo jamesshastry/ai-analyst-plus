@@ -47,6 +47,8 @@ def test_check_all_present(tmp_plugin_cache, monkeypatch, no_auth_probe):
     assert result["codex_cli"] is True
     assert result["plugin"] is True
     assert result["missing"] == []
+    assert result["ready"] is True
+    assert "proceed" in result["directive"].lower()
 
 
 def test_check_codex_cli_absent(tmp_plugin_cache, monkeypatch, no_auth_probe):
@@ -67,6 +69,19 @@ def test_check_plugin_absent(tmp_plugin_cache, monkeypatch, no_auth_probe):
 
     assert result["plugin"] is False
     assert "plugin" in result["missing"]
+
+
+def test_check_not_ready_directive_says_stop(tmp_plugin_cache, monkeypatch, no_auth_probe):
+    """When Codex is missing, the directive must forbid a Claude fallback."""
+    monkeypatch.setattr(cv.shutil, "which", lambda name: None)  # no CLI
+
+    result = cv.check()
+
+    assert result["ready"] is False
+    directive = result["directive"].lower()
+    assert "stop" in directive
+    assert "do not" in directive
+    assert "claude" in directive  # explicitly names the forbidden fallback
 
 
 def test_check_auth_false_adds_missing(tmp_plugin_cache, monkeypatch):

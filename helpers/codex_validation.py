@@ -15,10 +15,14 @@ Usage:
     python3 helpers/codex_validation.py --log <run_dir>
 
 `--check` emits JSON like:
-    {"codex_cli": true, "plugin": false, "auth": null,
-     "missing": ["plugin"]}
+    {"codex_cli": true, "plugin": false, "auth": null, "missing": ["plugin"],
+     "ready": false, "directive": "STOP: Codex is not ready. ..."}
 `auth` is null when it cannot be determined (e.g. the CLI is absent or the
 status subcommand is unavailable) — the live run then surfaces any auth error.
+`ready` is true only when `missing` is empty; `directive` carries a stop-or-go
+instruction so the gate travels with the tool output, not just the skill prose:
+when Codex is missing the skill must help set it up and must NOT fall back to
+validating with Claude (which would be circular).
 
 `--log` reads <run_dir>/verdict.json shaped like:
     {"question": "...", "model": "codex",
@@ -89,7 +93,21 @@ def check():
     if auth is False:
         missing.append("auth")
 
-    return {"codex_cli": codex_cli, "plugin": plugin, "auth": auth, "missing": missing}
+    ready = not missing
+    if ready:
+        directive = "Codex is ready — proceed with the independent validation."
+    else:
+        directive = (
+            "STOP: Codex is not ready. Do NOT validate with Claude, another model, or a "
+            "re-run of the SQL — a Claude-checks-Claude result is circular and worthless. "
+            "Your only job this turn is to help the user set up Codex (missing: "
+            f"{', '.join(missing)}), then stop. Validation happens on the next run."
+        )
+
+    return {
+        "codex_cli": codex_cli, "plugin": plugin, "auth": auth,
+        "missing": missing, "ready": ready, "directive": directive,
+    }
 
 
 def _count_verdicts(findings):
