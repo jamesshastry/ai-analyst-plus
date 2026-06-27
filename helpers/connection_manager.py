@@ -282,6 +282,11 @@ class ConnectionManager:
         Raises:
             RuntimeError: If no SQL-capable connection is available.
         """
+        # Lazy-connect: open the connection on first use, the same way
+        # test_connection() does. Without this, a fresh ConnectionManager().query()
+        # falls through to the RuntimeError below even though the backend is SQL-capable.
+        if self._connection is None and self._conn_type != "csv":
+            self.connect()
         if self._conn_type in ("motherduck", "duckdb") and self._connection:
             return self._connection.sql(sql).df()
 

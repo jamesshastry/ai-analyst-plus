@@ -223,6 +223,58 @@ def get_data_source_info(
 _KNOWLEDGE_DIR = Path(".knowledge")
 _ACTIVE_YAML = _KNOWLEDGE_DIR / "active.yaml"
 
+# Repo root, anchored to this file so it works regardless of the current directory.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_ENV_FILE = _REPO_ROOT / ".env"
+_env_loaded = False
+
+
+def _load_env():
+    """Load the saved .env into os.environ once, with no third-party dependency.
+
+    The connection block expands $SNOWFLAKE_* placeholders from os.environ, so the
+    .env has to be loaded first or the credentials come through blank. The .env WINS
+    over whatever is already in the environment: it is the canonical place the connect
+    flow writes credentials, so a stale or leftover shell variable must not silently
+    override the value the user just set.
+    """
+    global _env_loaded
+    if _env_loaded:
+        return
+    _env_loaded = True
+    try:
+        if not _ENV_FILE.exists():
+            return
+        for raw in _ENV_FILE.read_text().splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key = key.strip()
+            val = val.strip().strip('"').strip("'")
+            if key:
+                os.environ[key] = val
+    except Exception:
+        pass  # never let env loading break detection
+
+
+def _remote_enabled():
+    """Whether to use the declared remote warehouse instead of local DuckDB.
+
+    True if AAP_USE_REMOTE is set in the environment, OR the user has opted in via a
+    persisted flag (use_remote: true) in .knowledge/active.yaml. The persisted flag
+    is what lets the connect flow turn Snowflake on by writing a file, so a person
+    never has to set an environment variable in a terminal.
+    """
+    if os.environ.get("AAP_USE_REMOTE", "").lower() in ("1", "true", "yes"):
+        return True
+    try:
+        import yaml
+        data = yaml.safe_load((_REPO_ROOT / ".knowledge" / "active.yaml").read_text()) or {}
+        return str(data.get("use_remote", "")).lower() in ("1", "true", "yes")
+    except Exception:
+        return False
+
 
 def detect_active_source():
     """Detect which data source is currently active.
@@ -241,6 +293,9 @@ def detect_active_source():
             csv_path (str|None): Path to local CSV directory.
             connection (dict): Raw connection config from manifest.
     """
+    # Load saved credentials first, so $ENV placeholders in the manifest resolve.
+    _load_env()
+
     # --- Read active.yaml ---
     active_dataset = _read_active_dataset()
     if active_dataset is None:
@@ -267,7 +322,7 @@ def detect_active_source():
     # It is only used when opted into via AAP_USE_REMOTE, so the default/offline
     # path stays on the local DuckDB file (unchanged behaviour for students).
     declared_type = str(manifest.get("connection_type") or conn.get("type") or "").lower()
-    use_remote = os.environ.get("AAP_USE_REMOTE", "").lower() in ("1", "true", "yes")
+    use_remote = _remote_enabled()
 
     source_info = {
         "source": active_dataset,
