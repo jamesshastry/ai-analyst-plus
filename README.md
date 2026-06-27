@@ -14,7 +14,7 @@ An AI-powered product analyst for Claude Code and Codex-assisted analytics workf
 AI Analyst Plus turns AI coding agents into a product analytics system. It combines:
 
 - **Claude skills** (`.claude/skills/`) — standards Claude follows automatically (chart styling, data validation, question framing, stakeholder communication)
-- **Codex skills** (`.agents/skills/`) — Codex-native workflows such as `$independent-review` for provider-neutral validation and `$claude-review` for Claude second opinions
+- **Codex skills** (`.agents/skills/`) — Codex-native workflows such as `$independent-review`, `$claude-review`, `$skill-parity-review`, and `$metric-spec`
 - **Agents** (`agents/`) — multi-step analytical workflows orchestrated by a DAG engine (question framing → data exploration → analysis → storytelling → deck creation)
 - **Helpers** (`helpers/`) — Python modules for charting, SQL validation, data connectivity, statistical tests, and more
 - **Knowledge** (`.knowledge/`) — persistent memory for dataset context, corrections, proven SQL patterns, and business glossary
@@ -56,6 +56,17 @@ Or run the full pipeline:
 ```
 /run-pipeline question="Why is conversion dropping on mobile?"
 ```
+
+### Codex usage note
+
+Codex skills are invoked with natural language or `$skill-name`, not underscore slash commands. For example:
+
+```text
+Use $skill-parity-review to port metric-spec to Codex and bring it to parity with the Claude skill.
+Use $metric-spec to define checkout conversion rate.
+```
+
+See `docs/codex-guide.md` and `.agents/skills/INDEX.md` for current Codex-native workflows.
 
 ---
 
@@ -250,7 +261,7 @@ ai-analyst-plus/
 
 ### Skills vs Agents
 
-**Skills** are reusable standards and workflows. Claude skills in `.claude/skills/` support legacy Claude Code slash commands such as `/codex-review`; Codex skills in `.agents/skills/` support Codex-native invocation such as `$independent-review`, `$claude-review`, or selection from `/skills`. When you make a chart, the Visualization Patterns skill activates. When you start an analysis, Data Quality Check runs. Multiple skills can fire at once.
+**Skills** are reusable standards and workflows. Claude skills in `.claude/skills/` support legacy Claude Code slash commands such as `/codex-review`; Codex skills in `.agents/skills/` support Codex-native invocation such as `$independent-review`, `$claude-review`, `$skill-parity-review`, `$metric-spec`, or selection from `/skills`; do not invoke them as underscore slash commands. When you make a chart, the Visualization Patterns skill activates. When you start an analysis, Data Quality Check runs. Multiple skills can fire at once.
 
 **Agents** are multi-step workflows for specific tasks. They're markdown prompt templates with `{{VARIABLES}}` that get substituted at runtime. The pipeline orchestrates them in dependency order using a DAG engine.
 
