@@ -24,6 +24,48 @@ If the table is large enough that probing is expensive (>100M rows or warehouse 
 
 ## Instructions
 
+### Primary method — run the named structural validators
+
+Do not hand-roll the core checks as ad-hoc SQL. Query the rows once, then run the tested validators in
+`helpers/structural_validator.py`, so the checks are identical every time and can't be skipped or
+mis-written. The validators operate on a DataFrame, so pull the row-level slice you're about to analyze
+with the repo connection first:
+
+```python
+from helpers.connection_manager import ConnectionManager
+from helpers.structural_validator import run_structural_checks
+
+cm = ConnectionManager(); cm.connect()
+df = cm.query("select * from orders where order_date >= '2024-12-01'")   # the slice under analysis
+
+result = run_structural_checks(df, {
+    "primary_key": ["ORDER_ID"],                         # uniqueness + nulls
+    "required_columns": ["TOTAL_AMOUNT", "STATUS"],      # completeness
+    "completeness_threshold": 0.95,
+    "date_column": "ORDER_DATE",                         # gap / range
+    "value_domain": {"column": "STATUS",
+                     "valid_values": ["completed", "cancelled", "returned"]},
+    "min_rows": 1,
+})
+print(result["overall_ok"], result["checks_passed"], "/", result["checks_run"])
+for name, d in result["details"].items():
+    print(name, "->", "OK" if (d.get("ok") or d.get("valid")) else f"FAIL ({d.get('severity','')})")
+```
+
+`run_structural_checks` returns `{overall_ok, checks_run, checks_passed, checks_failed, details}`; each
+entry in `details` is a named validator's result carrying a `severity` — map it to the BLOCKER/WARNING/
+INFO rules below. For one targeted check, call the validator directly, e.g.
+`validate_primary_key(df, ["ORDER_ID"])`. For referential integrity, pass `parent_df` + `child_key` +
+`parent_key` in the config.
+
+Verified live on NovaMart: `run_structural_checks(products_df, {"primary_key": ["PRODUCT_ID"], "min_rows": 1})`
+passes (PRODUCT_ID is a real PK); `validate_primary_key(products_df, ["CATEGORY"])` flags it (6 duplicates).
+The check actually runs — it is not a description.
+
+The SQL templates in the Check Sequence below show what each validator does under the hood and cover
+extras the validators don't (ad-hoc segment coverage, etc.). Use them to explain or extend the results,
+not to replace the named validators.
+
 ### Check Sequence
 
 Run these checks in order. Stop and report blockers immediately.
