@@ -26,13 +26,14 @@ outcomes, not copy-paste prompt parity.
 | `google-slides-export` | `$google-slides-export` | Ported | P2 | Google Slides API safety/layout workflow; live export requires tools/auth. |
 | `notion-export` | `$notion-export` | Ported | P2 | Notion page/gallery workflow; live export requires tools/auth. |
 | `session-handoff` | `$session-handoff` | Ported | P2 | Saves state to `working/session_state.yaml`. |
+| `metrics` | `$metrics` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 
 ## Recommended next ports
 
 1. `$data-quality-check` shared standard extraction
 2. `$run-pipeline` coded dry-run/runtime helper hardening
 3. External integration tests for `$google-doc-export`, `$google-slides-export`, and `$notion-export`
-4. Remaining domain skills as needed (`question-framing`, `visualization-patterns`, `archive-analysis`)
+4. Remaining expert/tool-heavy skills as needed (`setup`, `question-router`, `semantic-validation`, `visualization-patterns`, `north-star`)
 
 Use `$skill-parity-review` for each port and save review artifacts under
 `working/skill_parity_review/`.
