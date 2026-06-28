@@ -7,7 +7,7 @@ description: Create a multi-persona project or feature plan with scope, personas
 
 ## Purpose
 
-Run a structured multi-perspective planning workflow that turns a project brief into a master plan, wave structure, task list, dependency map, and build tracker.
+Run a structured multi-perspective planning workflow that turns a project brief into a master plan, wave structure, task list, dependency map, and build tracker. The provider-neutral methodology lives in `shared/PLANNING_METHODOLOGY.md`.
 
 ## When to use
 
@@ -17,6 +17,10 @@ Run a structured multi-perspective planning workflow that turns a project brief 
 - the user wants a plan created from a brief or existing file.
 
 ## Workflow
+
+### 0. Load the shared methodology
+
+Read `shared/PLANNING_METHODOLOGY.md` before planning. Treat it as the source of truth for persona selection, debate/revision phases, master-plan sections, `BUILD_STATUS.yaml` schema, dependency rules, and execution tracker semantics.
 
 ### 1. Parse the brief
 
@@ -82,6 +86,7 @@ Return paths, wave/task counts, major risks, and the recommended first execution
 - `BUILD_STATUS.yaml`
 - `working/plans`
 - `debate-summary.md`
+- `shared/PLANNING_METHODOLOGY.md`
 
 ## Codex adaptation notes
 

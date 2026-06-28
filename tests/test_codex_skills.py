@@ -403,3 +403,14 @@ def test_all_claude_skills_have_codex_ports_except_codex_only():
     report = build_report(Path("."))
     assert report["missing_codex"] == []
     assert report["codex_only"] == ["claude-review"]
+
+SHARED_CONTENT_CONTRACTS = {
+    "architect": ["shared/PLANNING_METHODOLOGY.md"],
+}
+
+
+def test_codex_skills_reference_shared_provider_neutral_content():
+    for name, phrases in SHARED_CONTENT_CONTRACTS.items():
+        text = (SKILLS_DIR / name / "SKILL.md").read_text()
+        for phrase in phrases:
+            assert phrase in text, f"{name} missing shared content reference {phrase!r}"
