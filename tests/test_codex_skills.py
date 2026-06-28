@@ -408,6 +408,7 @@ SHARED_CONTENT_CONTRACTS = {
     "architect": ["shared/PLANNING_METHODOLOGY.md"],
     "causal": ["helpers/experiment_stats/causal/"],
     "north-star": ["helpers/north_star/", ".claude/skills/north-star/wiki/"],
+    "skill-creator": ["shared/skill-creator/README.md", ".claude/skills/skill-creator/scripts/"],
 }
 
 
@@ -416,3 +417,12 @@ def test_codex_skills_reference_shared_provider_neutral_content():
         text = (SKILLS_DIR / name / "SKILL.md").read_text()
         for phrase in phrases:
             assert phrase in text, f"{name} missing shared content reference {phrase!r}"
+
+
+def test_skill_creator_shared_tooling_contract_exists():
+    path = Path("shared/skill-creator/README.md")
+    assert path.exists()
+    text = path.read_text()
+    assert "progressive disclosure" in text
+    assert "evals/evals.json" in text
+    assert "aggregate_benchmark.py" in text

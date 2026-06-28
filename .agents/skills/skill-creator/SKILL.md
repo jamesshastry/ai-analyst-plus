@@ -7,7 +7,7 @@ description: Create, edit, evaluate, package, and improve Codex skills. Use when
 
 ## Purpose
 
-Guide Codex-native skill creation and iterative improvement while preserving progressive disclosure, safe resource organization, test prompts, and optional benchmark workflows.
+Guide Codex-native skill creation and iterative improvement while preserving progressive disclosure, safe resource organization, test prompts, and optional benchmark workflows. Provider-neutral tooling contracts live in `shared/skill-creator/`; legacy runnable scripts currently remain bundled under `.claude/skills/skill-creator/scripts/` until extracted.
 
 ## When to use
 
@@ -45,6 +45,10 @@ Include valid YAML frontmatter with `name` and a trigger-rich `description`. Bod
 
 For objective workflows, create `evals/evals.json` with realistic prompts, expected output descriptions, input files, and later assertions. For subjective writing/design skills, prefer qualitative review and examples.
 
+### Shared tooling sources
+
+Read `shared/skill-creator/README.md` for the provider-neutral skill/eval tooling contract. When a requested operation needs legacy scripts that have not yet been extracted, treat `.claude/skills/skill-creator/scripts/` and `.claude/skills/skill-creator/eval-viewer/` as source material to port or run deliberately, rather than copying hidden behavior into Codex.
+
 ### 5. Run or simulate evaluation loop
 
 When tooling allows, compare with-skill vs baseline/old-skill outputs, grade assertions, aggregate benchmark results, and collect user feedback. In Codex-only environments without the legacy viewer/subagent tools, save a reproducible local eval plan and run available tests/scripts.
@@ -64,6 +68,8 @@ Check frontmatter, paths, references, scripts, and eval schema. If packaging is 
 - `evals/evals.json`
 - `benchmark`
 - `description`
+- `shared/skill-creator/README.md`
+- `.claude/skills/skill-creator/scripts/`
 
 ## Codex adaptation notes
 
