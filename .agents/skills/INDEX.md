@@ -50,6 +50,7 @@ replace, legacy Claude Code skills under `.claude/skills/`.
 | `kickoff` | `.agents/skills/kickoff/SKILL.md` | The user wants to draft or post a community/Slack introduction. | `working/kickoff_intro_*.md` or Slack post |
 | `codex-review` | `.agents/skills/codex-review/SKILL.md` | Legacy Codex-review requests need a safe Codex-native redirect to independent or Claude review. | Blind brief, verdict table, `$independent-review`/`$claude-review` handoff |
 | `eval` | `.agents/skills/eval/SKILL.md` | The user wants to run/score the gold eval suite or compare train/test accuracy. | Gold-suite run record, accuracy/query-similarity report |
+| `knowledge-bootstrap` | `.agents/skills/knowledge-bootstrap/SKILL.md` | Session or dataset context needs loading from `.knowledge/` before analysis. | `.knowledge/.bootstrap_timestamp`, readiness summary |
 | `log-correction` | `.agents/skills/log-correction/SKILL.md` | User explicitly wants to log/save/record a correction or mistake. | `.knowledge/corrections/log.yaml`, `.knowledge/corrections/index.yaml` |
 | `feedback-capture` | `.agents/skills/feedback-capture/SKILL.md` | User corrects an answer, teaches a reusable preference, or asks to remember feedback. | `.knowledge/corrections/`, `.knowledge/learnings/index.md` |
 | `business` | `.agents/skills/business/SKILL.md` | User wants documented business context: glossary, products, metrics, objectives, teams, or term lookup. | `.knowledge/organizations/` |
@@ -119,6 +120,7 @@ Use $distribution-profiler to profile a metric distribution and choose tests.
 Use $kickoff to draft or post a community introduction.
 Use $codex-review to safely route legacy Codex validation requests.
 Use $eval to run a blind gold-suite evaluation.
+Use $knowledge-bootstrap to load session/dataset knowledge context.
 Use $log-correction to record a mistake and fix.
 Use $feedback-capture when the user gives a correction or reusable preference.
 Use $business to browse organization context.
