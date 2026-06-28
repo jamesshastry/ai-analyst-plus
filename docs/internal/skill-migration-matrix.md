@@ -49,6 +49,7 @@ outcomes, not copy-paste prompt parity.
 | `deck-rescue` | `$deck-rescue` | Ported | P2 | Remaining Codex wrapper port; static parity only. |
 | `distribution-profiler` | `$distribution-profiler` | Ported | P2 | Remaining Codex wrapper port; static parity only. |
 | `kickoff` | `$kickoff` | Ported | P2 | Remaining Codex wrapper port; static parity only. |
+| `codex-review` | `$codex-review` | Ported | P2 | Final-batch Codex wrapper port; static parity only. |
 | `log-correction` | `$log-correction` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `feedback-capture` | `$feedback-capture` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `business` | `$business` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |

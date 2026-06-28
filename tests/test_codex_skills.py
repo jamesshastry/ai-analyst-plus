@@ -344,3 +344,45 @@ def test_remaining_ports_are_in_docs_and_report():
         assert f"`{name}`" in matrix or f"${name}" in matrix
         assert name in ported
         assert name not in report["missing_codex"]
+
+FINAL_PORT_CONTRACTS = {
+    "codex-review": ['AGREE', 'DISAGREE', 'blind brief'],
+}
+
+
+def test_final_migrated_skills_exist():
+    found = {p.parent.name for p in SKILLS_DIR.glob("*/SKILL.md")}
+    missing = set(FINAL_PORT_CONTRACTS) - found
+    assert not missing, f"Missing final Codex skills: {sorted(missing)}"
+
+
+def test_final_ports_preserve_key_contracts():
+    for name, phrases in FINAL_PORT_CONTRACTS.items():
+        text = (SKILLS_DIR / name / "SKILL.md").read_text()
+        assert "## Purpose" in text
+        assert "## Workflow" in text
+        for phrase in phrases:
+            assert phrase in text, f"{name} missing expected phrase {phrase!r}"
+
+
+def test_final_ports_are_in_docs_and_report():
+    index = (SKILLS_DIR / "INDEX.md").read_text()
+    matrix = Path("docs/internal/skill-migration-matrix.md").read_text()
+    from scripts.report_skill_migration import build_report
+
+    report = build_report(Path("."))
+    ported = set(report["ported_same_name"])
+    for name in FINAL_PORT_CONTRACTS:
+        assert f"`{name}`" in index
+        assert f".agents/skills/{name}/SKILL.md" in index
+        assert f"`{name}`" in matrix or f"${name}" in matrix
+        assert name in ported
+        assert name not in report["missing_codex"]
+
+
+def test_all_claude_skills_have_codex_ports_except_codex_only():
+    from scripts.report_skill_migration import build_report
+
+    report = build_report(Path("."))
+    assert report["missing_codex"] == []
+    assert report["codex_only"] == ["claude-review"]
