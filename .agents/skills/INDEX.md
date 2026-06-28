@@ -35,6 +35,7 @@ replace, legacy Claude Code skills under `.claude/skills/`.
 | `data-map` | `.agents/skills/data-map/SKILL.md` | User wants a first-contact dataset-wide overview, relationship map, and health summary. | Dataset map report, query logs |
 | `explore` | `.agents/skills/explore/SKILL.md` | User wants quick interactive data exploration, table previews, or column distributions. | `working/explore_notes_*.md` |
 | `causal` | `.agents/skills/causal/SKILL.md` | User asks whether a change caused an outcome or needs observational impact estimation. | `analyses/{slug}/working/`, `reports/causal_report_*.md` |
+| `setup` | `.agents/skills/setup/SKILL.md` | The user wants to onboard, configure the analyst, resume setup, check setup status, or reset setup state. | `.knowledge/setup-state.yaml`, `.knowledge/user/profile.md`, `.knowledge/user/business-context.md` |
 | `log-correction` | `.agents/skills/log-correction/SKILL.md` | User explicitly wants to log/save/record a correction or mistake. | `.knowledge/corrections/log.yaml`, `.knowledge/corrections/index.yaml` |
 | `feedback-capture` | `.agents/skills/feedback-capture/SKILL.md` | User corrects an answer, teaches a reusable preference, or asks to remember feedback. | `.knowledge/corrections/`, `.knowledge/learnings/index.md` |
 | `business` | `.agents/skills/business/SKILL.md` | User wants documented business context: glossary, products, metrics, objectives, teams, or term lookup. | `.knowledge/organizations/` |
@@ -89,6 +90,7 @@ Use $tracking-gaps when required data is unavailable or incomplete.
 Use $data-map to map a new dataset before analysis.
 Use $explore to poke around data before formal analysis.
 Use $causal when experiments are impossible but impact needs estimation.
+Use $setup to onboard or check setup status.
 Use $log-correction to record a mistake and fix.
 Use $feedback-capture when the user gives a correction or reusable preference.
 Use $business to browse organization context.
