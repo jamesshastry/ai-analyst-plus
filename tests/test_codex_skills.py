@@ -406,6 +406,7 @@ def test_all_claude_skills_have_codex_ports_except_codex_only():
 
 SHARED_CONTENT_CONTRACTS = {
     "architect": ["shared/PLANNING_METHODOLOGY.md"],
+    "causal": ["helpers/experiment_stats/causal/"],
 }
 
 
