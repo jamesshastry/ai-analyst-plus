@@ -1,44 +1,119 @@
 # Codex Guide
 
-AI Analyst Plus is still primarily Claude Code-first, but Codex-native support is being added
-under `.agents/skills/`.
+This guide explains how to use this repository with Codex. The repo still supports legacy
+Claude Code workflows under `.claude/skills/`, but Codex-native workflows live under
+`.agents/skills/`.
 
-## How to invoke Codex skills
+## Start here
 
-Codex skills are **not slash commands**. Invoke them in natural language or with the `$` skill
-name form:
+1. Read `AGENTS.md` for repository rules.
+2. Check available Codex skills in `.agents/skills/INDEX.md`.
+3. Check the active dataset pointer in `.knowledge/active.yaml` before data analysis.
+4. Use repository helpers in `helpers/` rather than writing one-off statistical or warehouse
+   logic.
+5. Save intermediate artifacts in `working/` and final outputs in `outputs/`.
+
+## Core Codex workflow
+
+### 1. Connect or choose data
+
+- Use `$connect-data` to add a dataset.
+- Use `$datasets` to list connected datasets.
+- Use `$switch-dataset {name}` to change the active dataset.
+- Use `$data-inspect` to inspect the active schema.
+
+Dataset knowledge is stored under:
 
 ```text
-Use $skill-parity-review to review metric-spec.
-Use $skill-parity-review to port metric-spec to Codex and bring it to parity with the Claude skill.
-Use $metric-spec to define checkout conversion rate.
-Use $independent-review to validate this finding with a blind second pass.
-Use $claude-review to have Claude independently check this Codex result.
+.knowledge/datasets/{dataset}/manifest.yaml
+.knowledge/datasets/{dataset}/schema.md
+.knowledge/datasets/{dataset}/quirks.md
+.knowledge/datasets/{dataset}/metrics/index.yaml
 ```
 
-Do not use underscore slash commands like `/skill_parity_review`; Codex will treat that as an
-unknown built-in command. Use `$skill-parity-review` or a natural-language request instead.
+The active dataset is stored in:
 
-## Available Codex skills
+```text
+.knowledge/active.yaml
+```
 
-See `.agents/skills/INDEX.md` for the current list. As of now:
+### 2. Define metrics before analysis
 
-- `$independent-review` — provider-neutral blind second-pass validation.
-- `$claude-review` — ask Claude to validate a Codex-produced result from a blind brief.
-- `$skill-parity-review` — compare/port Claude and Codex skill pairs.
-- `$metric-spec` — define, document, and register metrics.
+Use `$metric-spec` when a metric lacks a denominator, time window, grain, filters,
+attribution rule, source table, or threshold. Registered metric specs live under:
 
-## Current limitations
+```text
+.knowledge/datasets/{active}/metrics/
+```
 
-Codex support is partial. Many workflows remain legacy Claude Code slash-command workflows
-under `.claude/skills/`, including `/run-pipeline`, `/connect-data`, `/reliability`, and
-export workflows. Use `$skill-parity-review` to port high-value Claude skills into
-`.agents/skills/` one at a time.
+### 3. Run analysis with repo helpers
 
-## Testing
+For warehouse/data access, prefer:
 
-Use the local virtual environment when available:
+```python
+from helpers.connection_manager import ConnectionManager
+```
+
+For experiment, validation, charts, exports, and provenance, reuse existing modules under
+`helpers/`. Do not duplicate statistical routines.
+
+Before SQL analysis, read active dataset metadata in `.knowledge/`, verify connectivity, and
+log executed queries with `scripts/log_query.py` when applicable.
+
+### 4. Validate important results
+
+- Use `$reliability` to test whether an analytics answer is stable across independent runs.
+- Use `$independent-review` for provider-neutral blind second-pass validation.
+- Use `$claude-review` when Claude should independently validate a Codex-produced result.
+
+## Codex skill invocation
+
+Codex skills are invoked by natural language or `$skill-name`, for example:
+
+```text
+Use $datasets to show what data is connected.
+Use $data-inspect orders to show the orders table schema.
+Use $metric-spec to define activation rate.
+Use $reliability "What is our 30-day retention rate?" 5.
+```
+
+Legacy Claude slash commands such as `/connect-data` or `/reliability` are documented in
+`.claude/skills/`; Codex users should prefer the `$skill-name` equivalents where available.
+
+## Current Codex-native skills
+
+See `.agents/skills/INDEX.md` for the canonical list. The current core set includes:
+
+- `$connect-data`
+- `$datasets`
+- `$switch-dataset`
+- `$data-inspect`
+- `$metric-spec`
+- `$reliability`
+- `$independent-review`
+- `$claude-review`
+- `$skill-parity-review`
+
+## Known limitations
+
+Codex migration is in progress. Some legacy Claude workflows do not yet have Codex-native
+counterparts, including several export, presentation, pipeline orchestration, and integration
+skills. When a Codex skill is missing, use `$skill-parity-review` to port the corresponding
+Claude skill safely instead of copying Claude-specific mechanics.
+
+## Development checks
+
+Run:
 
 ```bash
-.venv/bin/python -m pytest tests/test_codex_skills.py tests/test_codex_validation.py
+pytest tests/test_codex_skills.py
+pytest
+```
+
+For chart/theme changes, also run:
+
+```bash
+python scripts/lint_chart_colors.py
+python scripts/lint_wcag.py
+python scripts/check_theme_sync.py
 ```
