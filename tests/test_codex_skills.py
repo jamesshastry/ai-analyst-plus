@@ -305,6 +305,7 @@ def test_expert_tool_ports_are_in_docs_and_report():
         assert name not in report["missing_codex"]
 
 REMAINING_PORT_CONTRACTS = {
+    "auth-preflight": ['Google Workspace', 'Auth: OK', 'local fallback'],
     "architect": ['multi-persona', 'MASTER_PLAN.md', 'BUILD_STATUS.yaml'],
 }
 
