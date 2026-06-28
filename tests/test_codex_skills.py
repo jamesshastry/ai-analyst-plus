@@ -108,3 +108,104 @@ def test_migration_matrix_lists_all_codex_skills():
         assert f"`{name}`" in matrix or f"${name}" in matrix, (
             f"Migration matrix missing {name}"
         )
+
+
+RECENT_EASY_MEDIUM_PORTS = {
+    "archive-analysis",
+    "business",
+    "close-the-loop",
+    "compare-datasets",
+    "data-profiling",
+    "feedback-capture",
+    "forecast",
+    "guardrails",
+    "history",
+    "log-correction",
+    "metrics",
+    "pace",
+    "patterns",
+    "question-framing",
+    "runs",
+    "srm-check",
+    "stakeholder-communication",
+    "teach",
+    "theme-picker",
+    "trace",
+}
+
+
+def test_easy_medium_migrated_skills_exist():
+    found = {p.parent.name for p in SKILLS_DIR.glob("*/SKILL.md")}
+    missing = RECENT_EASY_MEDIUM_PORTS - found
+    assert not missing, f"Missing newly migrated Codex skills: {sorted(missing)}"
+
+
+def test_easy_medium_ports_have_codex_native_language():
+    for name in sorted(RECENT_EASY_MEDIUM_PORTS):
+        path = SKILLS_DIR / name / "SKILL.md"
+        text = path.read_text()
+        assert f"name: {name}" in text
+        assert "# " in text, f"{path} missing body heading"
+        assert "## Purpose" in text, f"{path} missing purpose section"
+        assert "## Workflow" in text or "## Modes" in text, (
+            f"{path} missing workflow/modes section"
+        )
+        legacy_invocation = "/" + name
+        forbidden_invocation_phrases = (
+            f"invoked as `{legacy_invocation}`",
+            f"user says `{legacy_invocation}`",
+            f"type `{legacy_invocation}`",
+            f"run `{legacy_invocation}`",
+        )
+        lowered = text.lower()
+        for phrase in forbidden_invocation_phrases:
+            assert phrase not in lowered, (
+                f"{path} should not depend on slash-command invocation"
+            )
+
+
+def test_easy_medium_ports_preserve_key_artifact_contracts():
+    expected_phrases = {
+        "archive-analysis": [".knowledge/analyses", "partial: true"],
+        "business": ["helpers.business_context", "does not query datasets"],
+        "close-the-loop": ["Follow-up Plan", "baseline", "target"],
+        "compare-datasets": ["definition drift", "time windows"],
+        "data-profiling": ["working/data_profiles", "null rates"],
+        "feedback-capture": [".knowledge/corrections", ".knowledge/learnings"],
+        "forecast": ["naive baseline", "confidence"],
+        "guardrails": ["Guardrail Check", "TRADE-OFF"],
+        "history": [".knowledge/analyses/index.yaml", "active dataset"],
+        "log-correction": ["CORR-###", "severity"],
+        "metrics": ["metric dictionary", "$metric-spec"],
+        "pace": ["guided", "autopilot"],
+        "patterns": ["_patterns.yaml", "stale"],
+        "question-framing": ["Framed Question", "assumptions"],
+        "runs": ["working/runs", "clean"],
+        "srm-check": ["Sample Ratio Mismatch", "BLOCK"],
+        "stakeholder-communication": ["Executive", "Product"],
+        "teach": ["outputs/charts/teach", "signal-vs-noise"],
+        "theme-picker": ["default_theme", "swd_style"],
+        "trace": ["helpers.trace_viewer.build_trace", "unmatched"],
+    }
+    for name, phrases in expected_phrases.items():
+        text = (SKILLS_DIR / name / "SKILL.md").read_text()
+        for phrase in phrases:
+            assert phrase in text, f"{name} missing expected phrase {phrase!r}"
+
+
+def test_teach_port_includes_runnable_topic_script():
+    topic = SKILLS_DIR / "teach" / "topics" / "signal_vs_noise.py"
+    assert topic.exists()
+    text = topic.read_text()
+    assert "def main" in text
+    assert "outputs/charts/teach" in text
+
+
+def test_migration_report_reflects_easy_medium_batch():
+    from scripts.report_skill_migration import build_report
+
+    report = build_report(Path("."))
+    assert report["codex_count"] >= 40
+    assert not (RECENT_EASY_MEDIUM_PORTS - set(report["ported_same_name"]))
+    for name in RECENT_EASY_MEDIUM_PORTS:
+        assert name not in report["missing_codex"]
