@@ -25,6 +25,7 @@ replace, legacy Claude Code skills under `.claude/skills/`.
 | `independent-review` | `.agents/skills/independent-review/SKILL.md` | The user wants a provider-neutral blind second-pass validation, second opinion, cross-check, or independent re-derivation. | `working/independent_review/`, `.knowledge/independent-review/log.jsonl` |
 | `claude-review` | `.agents/skills/claude-review/SKILL.md` | Codex produced an analysis and the user wants Claude to independently validate it from a blind brief. | `working/claude_review/`, `.knowledge/claude-review/log.jsonl` |
 | `skill-parity-review` | `.agents/skills/skill-parity-review/SKILL.md` | The user wants to compare a Codex skill with its corresponding Claude skill, audit migration parity, port a Claude skill to Codex, or bring a Codex skill up to parity. | `working/skill_parity_review/` |
+| `archive-analysis` | `.agents/skills/archive-analysis/SKILL.md` | User wants to save/archive completed analysis findings and outputs for future recall. | `.knowledge/analyses/index.yaml`, `.knowledge/datasets/{active}/manifest.yaml` |
 | `data-profiling` | `.agents/skills/data-profiling/SKILL.md` | User wants table profiling for schema, nulls, distributions, freshness, keys, and outliers. | `working/data_profiles/` |
 | `compare-datasets` | `.agents/skills/compare-datasets/SKILL.md` | User wants to compare metrics/findings/patterns across datasets or product lines. | `.knowledge/datasets/`, `.knowledge/analyses/` |
 | `question-framing` | `.agents/skills/question-framing/SKILL.md` | User asks a broad/ambiguous analytics question that needs scoping before analysis. | Framed question block |
@@ -64,6 +65,7 @@ Use $google-doc-export to create a formatted Google Doc with local backup.
 Use $google-slides-export to create a Google Slides deck when tools are available.
 Use $notion-export to publish analysis to Notion when tools are available.
 Use $skill-parity-review to port another Claude skill to Codex.
+Use $archive-analysis to save completed findings.
 Use $data-profiling to profile a table before analysis.
 Use $compare-datasets to compare behavior across datasets.
 Use $question-framing to scope an ambiguous analytics question.
