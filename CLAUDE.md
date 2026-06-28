@@ -42,7 +42,13 @@ python scripts/check_imports.py       # Verify helper imports are clean
 python scripts/check_theme_sync.py    # Validate theme CSS ↔ _base.yaml sync
 ```
 
-### Query Logging (required after every SQL execution)
+### Query Logging (automatic via the connection; manual only for bypasses)
+Queries run through `ConnectionManager.query()` (the normal path) are logged automatically the moment
+they execute, with the exact SQL, the scalar result value, the tables, and the analysis_id. Do NOT
+log those again or you will write a duplicate entry.
+
+Log by hand only when a query bypasses `ConnectionManager` (a raw cursor, inline `pandas.read_sql` on
+a raw connection, the Snowflake MCP tool, or any other method):
 ```bash
 python3 scripts/log_query.py \
   --dataset <dataset-id> --agent <agent-name> \
@@ -183,6 +189,7 @@ condition matches -- you do not need to be asked.
 | Export | `.claude/skills/export/skill.md` | Invoked as `/export {format}` — export results as slides, email, slack, brief, data, gdoc (Google Doc with charts + SQL), or docx (local Word file) |
 | Connect Data | `.claude/skills/connect-data/skill.md` | Invoked as `/connect-data` — add a new dataset connection |
 | Setup Snowflake | `.claude/skills/setup-snowflake/skill.md` | Invoked as `/setup-snowflake` — guided Snowflake credential setup, MCP connection test, and data exploration |
+| Connect Snowflake | `.claude/skills/connect-snowflake/skill.md` | Querying the **live/remote** Snowflake NovaMart data (vs. local DuckDB) — "connect to snowflake", "use the live data", "go remote", "is this hitting snowflake or duckdb?". Opt into remote via `AAP_USE_REMOTE=1` / `use_remote: true`, query through `ConnectionManager`, verify `connection_type == 'snowflake'`. Distinct from `/setup-snowflake` (first-time MCP wizard) |
 | Setup Notion | `.claude/skills/setup-notion/skill.md` | Invoked as `/setup-notion` — guided Notion MCP setup with OAuth, connection test, and Analysis Gallery detection |
 | Metrics | `.claude/skills/metrics/skill.md` | Invoked as `/metrics` — view and manage metric dictionary entries |
 | Compare Datasets | `.claude/skills/compare-datasets/skill.md` | Comparing metrics or patterns across two datasets |
@@ -353,6 +360,26 @@ Use `/datasets` to list all connected datasets. Use `/switch-dataset {name}` to 
 
 For external warehouses (Postgres, BigQuery, Snowflake), use `get_dialect(connection_type)` from `helpers/sql_dialect.py` for warehouse-specific SQL (date_trunc, safe_divide, etc.). Never write raw warehouse-specific SQL — always use the dialect adapter.
 
+### Connecting to Live Snowflake (NovaMart)
+
+**Whenever the user wants to query the live/remote Snowflake data, follow the
+`/connect-snowflake` skill (`.claude/skills/connect-snowflake/skill.md`).** The
+repo defaults to the **local DuckDB** practice copy even though `novamart`
+declares `connection_type: snowflake` — `detect_active_source()` only goes remote
+when opted in. Opt in two ways (both can be set; `.knowledge/active.yaml` already
+has `use_remote: true`):
+- **Per-shell:** `export AAP_USE_REMOTE=1` **in the same Bash call** as the
+  `python3` (shell env does not persist across tool calls), OR
+- **Persisted:** `use_remote: true` in `.knowledge/active.yaml`.
+
+Query through `ConnectionManager` (auto-loads `.env`, expands `$SNOWFLAKE_*`,
+lazy-connects, auto-logs each query). Then **verify you're actually remote**:
+`mgr.connection_type` must return `snowflake` and `CURRENT_ACCOUNT()` must be
+`TQ49857` / `BOOTCAMP_WH` / `BOOTCAMP_DB.NOVAMART` — if it says `duckdb`, the
+opt-in didn't take. Tables are unqualified in the `NOVAMART` schema. Do **not**
+trust `sessions.had_purchase` for Nov–Dec 2024 (see `quirks.md`). Full runbook
+and gotchas: the `/connect-snowflake` skill.
+
 ### Data Source Fallback
 
 At the start of any analysis, verify data connectivity:
@@ -463,11 +490,13 @@ These are non-negotiable. They protect analytical quality.
     commit it. When testing connections, source credentials from environment
     variables, never inline.
 
-17. **Log every data-touching query.** After every SQL query — MCP, inline
-    Python, or any other method — log it via `python3 scripts/log_query.py`
-    with `--dataset`, `--agent`, `--purpose`, `--sql`, and `--result`. Applies
-    inside AND outside the pipeline (`--agent ad-hoc` for one-off queries).
-    The validation agent checks coverage and flags gaps.
+17. **Every data-touching query is logged.** Queries run through
+    `ConnectionManager.query()` are logged automatically at execution; do not log
+    them again. Log by hand only when a query bypasses ConnectionManager (a raw
+    cursor, inline `pandas.read_sql`, the MCP tool, or any other method) via
+    `python3 scripts/log_query.py` with `--dataset`, `--agent`, `--purpose`,
+    `--sql`, and `--result` (`--agent ad-hoc` for one-off queries). The
+    validation agent checks coverage and flags gaps.
 
 18. **Never answer a table-scoped question from schema alone.** Any question
     that names a specific table ("tell me about X", "describe Y", "what's in

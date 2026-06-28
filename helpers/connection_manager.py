@@ -18,6 +18,10 @@ Usage:
         tables = mgr.list_tables()
 """
 
+import os
+import re
+import time
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -270,11 +274,16 @@ class ConnectionManager:
 
         return []
 
-    def query(self, sql):
+    def query(self, sql, log=True):
         """Execute a SQL query and return results as a DataFrame.
 
         Args:
             sql: SQL query string.
+            log: When True (default), the query is logged to the query log at the moment it executes,
+                with its SQL, the scalar result_value (when the result is a single cell), the tables it
+                touched, and the current analysis_id. This is the provenance capture: the log records
+                what actually ran on this connection, not what the analyst later says it ran. Pass
+                False (or call query_log.set_autolog(False) process-wide) when a caller logs by hand.
 
         Returns:
             pandas.DataFrame with query results.
@@ -287,24 +296,79 @@ class ConnectionManager:
         # falls through to the RuntimeError below even though the backend is SQL-capable.
         if self._connection is None and self._conn_type != "csv":
             self.connect()
+
+        start = time.perf_counter()
         if self._conn_type in ("motherduck", "duckdb") and self._connection:
-            return self._connection.sql(sql).df()
-
+            df = self._connection.sql(sql).df()
         elif self._conn_type == "postgres" and self._connection:
-            return pd.read_sql(sql, self._connection)
-
+            df = pd.read_sql(sql, self._connection)
         elif self._conn_type == "snowflake" and self._connection:
             cur = self._connection.cursor()
             try:
                 cur.execute(sql)
-                return cur.fetch_pandas_all() if cur.description else pd.DataFrame()
+                df = cur.fetch_pandas_all() if cur.description else pd.DataFrame()
             finally:
                 cur.close()
+        else:
+            raise RuntimeError(
+                f"SQL queries not supported for connection type: {self._conn_type}. "
+                "Use read_table() for CSV data."
+            )
+        execution_ms = (time.perf_counter() - start) * 1000.0
 
-        raise RuntimeError(
-            f"SQL queries not supported for connection type: {self._conn_type}. "
-            "Use read_table() for CSV data."
-        )
+        if log:
+            self._autolog_query(sql, df, execution_ms)
+        return df
+
+    def _autolog_query(self, sql, df, execution_ms):
+        """Record this query to the query log at execution. Best-effort: a logging failure must never
+        break the query, so everything here is wrapped and swallowed."""
+        try:
+            if os.environ.get("AAP_QUERY_AUTOLOG", "1") == "0":
+                return
+            from helpers import query_log
+            if not query_log.autolog_enabled():
+                return  # a caller (e.g. a pipeline) is logging by hand; do not double-log
+
+            # The scalar result_value: only when the result is a single 1x1 cell (most metric queries).
+            # This is what makes finding<->query value-matching reliable; None otherwise.
+            result_value = None
+            try:
+                if df is not None and df.shape == (1, 1):
+                    result_value = df.iloc[0, 0]
+                    if hasattr(result_value, "item"):  # numpy scalar -> python scalar
+                        result_value = result_value.item()
+            except Exception:
+                result_value = None
+
+            tables = re.findall(r'(?:from|join)\s+([A-Za-z0-9_.]+)', sql or "", flags=re.IGNORECASE)
+
+            analysis_id = None
+            try:
+                from helpers.analysis_context import current_analysis_id
+                analysis_id = current_analysis_id(create=True)
+            except Exception:
+                analysis_id = None
+
+            query_log.append_entry(
+                dataset_name=self.dataset_id,
+                date=date.today().isoformat(),
+                agent="connection_manager",
+                pipeline_step=0.0,
+                purpose="auto-logged at execution by the connection",
+                sql=sql,
+                dialect=self._conn_type,
+                connection_type=self._conn_type,
+                tables_accessed=tables or None,
+                result_summary=(f"{len(df)} rows returned" if df is not None else ""),
+                result_value=result_value,
+                row_count=(len(df) if df is not None else None),
+                execution_ms=execution_ms,
+                analysis_id=analysis_id,
+            )
+        except Exception:
+            # Provenance logging is never allowed to take down a real query.
+            pass
 
     def read_table(self, table_name):
         """Read an entire table as a DataFrame.

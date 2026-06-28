@@ -50,6 +50,11 @@ _WORKING_DIR = Path("working")
 # The pipeline sets this to the run directory's working/ subfolder.
 _EXPLICIT_LOG_DIR: Path | None = None
 
+# When True, ConnectionManager.query() auto-logs every query at execution. A pipeline that already
+# logs each query by hand (e.g. run-pipeline, data-map) calls set_autolog(False) at start so the
+# same query is not written twice. Default on: the interactive analyst path relies on it.
+_AUTOLOG_ENABLED: bool = True
+
 
 def set_log_dir(path: str | Path) -> None:
     """Override the default log directory.
@@ -59,6 +64,20 @@ def set_log_dir(path: str | Path) -> None:
     """
     global _EXPLICIT_LOG_DIR
     _EXPLICIT_LOG_DIR = Path(path)
+
+
+def set_autolog(enabled: bool) -> None:
+    """Enable or disable ConnectionManager's at-execution auto-logging process-wide.
+
+    Pipelines that log every query by hand call set_autolog(False) at start to avoid a double entry.
+    """
+    global _AUTOLOG_ENABLED
+    _AUTOLOG_ENABLED = enabled
+
+
+def autolog_enabled() -> bool:
+    """Return whether at-execution auto-logging is currently on."""
+    return _AUTOLOG_ENABLED
 
 
 def _log_path(dataset_name: str, date: str) -> Path:
