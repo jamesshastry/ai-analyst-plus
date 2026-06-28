@@ -84,8 +84,9 @@ def get_snowflake_conn():
     cm.connect()
     if cm.connection_type != "snowflake":
         raise RuntimeError(
-            f"eval: connected to '{cm.connection_type}', not Snowflake. D3 requires Snowflake with "
-            "no DuckDB fallback — set AAP_USE_REMOTE=1 and configure the warehouse before /eval."
+            f"eval: active connection is '{cm.connection_type}', not Snowflake. D3 requires Snowflake "
+            "with no DuckDB fallback — connect the active dataset to Snowflake first (/setup-snowflake "
+            "or /connect-data; the dataset manifest's type must be 'snowflake')."
         )
     return cm._connection
 
