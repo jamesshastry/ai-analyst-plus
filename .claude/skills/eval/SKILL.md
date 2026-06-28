@@ -85,10 +85,15 @@ fixed window) around the run and pass the total as `total_cost`.
 
 ### Step 5 — report
 Show the headline from the record: `accuracy = passed/total`, `avg_query_similarity`, and (when
-present) `total_cost` / `cost_per_correct` / `avg_latency_ms`. Then:
+present) `total_cost` / `cost_per_correct` / `avg_latency_ms`. The run already did the **error
+analysis**: `failure_modes` ranks the failures by mode (undefined-metric-drift, fan-out, wrong-filter,
+wrong-grain, wrong-source) and a `<run_id>-clusters.html` is written. Then:
 - Name the **context_state** (how many metrics are defined). The climb is this growing run over run.
-- For **train**: "this is your working number — error-analyze the failures (`/cluster-errors` or read
-  the run), add the missing definitions, re-run, watch it climb."
+- Show the ranked **failure modes**, then **diagnose** them — that's the student's job, not the tool's:
+  what does the dominant mode mean, and what's the fix? (Usually the definitional failures are missing
+  definitions → add them in the Context pillar; a fan-out cluster → a join convention.)
+- For **train**: "this is your working number — the clustered failures show what to fix; add the
+  missing definitions, re-run, watch it climb."
 - For **test**: "held-out number. If train climbed but this didn't, you overfit. Don't tune on this."
 - P14: report the score as what this run produced, not a promised figure. Each student's number
   differs because each builds context at their own pace.
