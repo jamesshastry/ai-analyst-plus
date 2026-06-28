@@ -25,6 +25,7 @@ replace, legacy Claude Code skills under `.claude/skills/`.
 | `independent-review` | `.agents/skills/independent-review/SKILL.md` | The user wants a provider-neutral blind second-pass validation, second opinion, cross-check, or independent re-derivation. | `working/independent_review/`, `.knowledge/independent-review/log.jsonl` |
 | `claude-review` | `.agents/skills/claude-review/SKILL.md` | Codex produced an analysis and the user wants Claude to independently validate it from a blind brief. | `working/claude_review/`, `.knowledge/claude-review/log.jsonl` |
 | `skill-parity-review` | `.agents/skills/skill-parity-review/SKILL.md` | The user wants to compare a Codex skill with its corresponding Claude skill, audit migration parity, port a Claude skill to Codex, or bring a Codex skill up to parity. | `working/skill_parity_review/` |
+| `history` | `.agents/skills/history/SKILL.md` | User wants archived analysis history, prior findings, or similar past work. | `.knowledge/analyses/index.yaml` |
 | `metrics` | `.agents/skills/metrics/SKILL.md` | User wants to browse, search, list, or explain metric definitions. | `.knowledge/datasets/{active}/metrics/` |
 
 ## Invocation
@@ -50,6 +51,7 @@ Use $google-doc-export to create a formatted Google Doc with local backup.
 Use $google-slides-export to create a Google Slides deck when tools are available.
 Use $notion-export to publish analysis to Notion when tools are available.
 Use $skill-parity-review to port another Claude skill to Codex.
+Use $history to browse archived analyses.
 Use $metrics to list metric definitions for the active dataset.
 ```
 
