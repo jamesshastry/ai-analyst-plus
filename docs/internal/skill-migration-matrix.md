@@ -1,0 +1,40 @@
+# Skill Migration Matrix
+
+Tracks migration from legacy Claude skills in `.claude/skills/` to Codex-native skills in
+`.agents/skills/`. Compatibility means equivalent intent, safety, artifacts, and user-facing
+outcomes, not copy-paste prompt parity.
+
+| Claude skill | Codex skill | Status | Priority | Notes |
+|---|---|---:|---:|---|
+| `connect-data` | `$connect-data` | Ported | P0 | Core dataset onboarding workflow. Static parity review only. |
+| `datasets` | `$datasets` | Ported | P0 | Lists registry/knowledge datasets and active state. |
+| `switch-dataset` | `$switch-dataset` | Ported | P0 | Includes in-progress work safeguard. |
+| `data-inspect` | `$data-inspect` | Ported | P0 | Schema-only active dataset inspection. |
+| `metric-spec` | `$metric-spec` | Ported | P0 | Existing Codex skill; should continue to receive parity reviews as Claude source evolves. |
+| `reliability` | `$reliability` | Ported | P0 | Uses deterministic `helpers/reliability_stats.py`; independence may require manual fresh sessions. |
+| `independent-review` | `$independent-review` | Ported | P0 | Provider-neutral blind validation. |
+| `claude-review` | `$claude-review` | Codex-only | P0 | Codex asks Claude for blind validation. |
+| `skill-parity-review` | `$skill-parity-review` | Ported | P0 | Migration utility for additional skills. |
+| `data-quality-check` | missing | Not started | P1 | Candidate next core analysis quality port. |
+| `run-pipeline` | missing | Not started | P1 | Needs Codex-native orchestration over `agents/registry.yaml`. |
+| `resume-pipeline` | missing | Not started | P1 | Should share pipeline state conventions. |
+| `experiment` | missing | Not started | P1 | Should reuse experiment helpers. |
+| `compare` | missing | Not started | P1 | Needs temporary metric overlay caution. |
+| `export` | missing | Not started | P1 | Delivery workflow; may need integration-specific notes. |
+| `presentation-themes` | missing | Not started | P2 | Presentation layer migration. |
+| `google-doc-export` | missing | Not started | P2 | MCP/integration availability must be explicit. |
+| `google-slides-export` | missing | Not started | P2 | MCP/integration availability must be explicit. |
+| `notion-export` | missing | Not started | P2 | MCP/integration availability must be explicit. |
+| `session-handoff` | missing | Not started | P2 | Useful for long-running Codex sessions. |
+
+## Recommended next ports
+
+1. `$data-quality-check`
+2. `$experiment`
+3. `$compare`
+4. `$run-pipeline`
+5. `$resume-pipeline`
+6. `$export`
+
+Use `$skill-parity-review` for each port and save review artifacts under
+`working/skill_parity_review/`.
