@@ -60,3 +60,28 @@ def test_skill_parity_review_acceptance_content():
     ]
     for phrase in required:
         assert phrase in text
+
+
+def test_core_codex_migrated_skills_exist():
+    expected = {
+        "connect-data",
+        "datasets",
+        "switch-dataset",
+        "data-inspect",
+        "metric-spec",
+        "reliability",
+        "independent-review",
+        "claude-review",
+        "skill-parity-review",
+    }
+    found = {p.parent.name for p in SKILLS_DIR.glob("*/SKILL.md")}
+    missing = expected - found
+    assert not missing, f"Missing expected Codex skills: {sorted(missing)}"
+
+
+def test_codex_skill_index_lists_all_skills():
+    index = (SKILLS_DIR / "INDEX.md").read_text()
+    for path in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+        name = path.parent.name
+        assert f"`{name}`" in index, f"INDEX.md missing {name}"
+        assert str(path) in index, f"INDEX.md missing path for {name}"
