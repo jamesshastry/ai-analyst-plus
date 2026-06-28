@@ -43,6 +43,7 @@ outcomes, not copy-paste prompt parity.
 | `north-star` | `$north-star` | Ported | P2 | Expert/tool-heavy Codex wrapper port; static parity only. |
 | `architect` | `$architect` | Ported | P2 | Remaining Codex wrapper port; static parity only. |
 | `auth-preflight` | `$auth-preflight` | Ported | P2 | Remaining Codex wrapper port; static parity only. |
+| `chart-to-drive` | `$chart-to-drive` | Ported | P2 | Remaining Codex wrapper port; static parity only. |
 | `log-correction` | `$log-correction` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `feedback-capture` | `$feedback-capture` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `business` | `$business` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
