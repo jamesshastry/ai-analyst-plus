@@ -1,7 +1,8 @@
 # AI Analyst Plus
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Claude Code Required](https://img.shields.io/badge/requires-Claude%20Code-blueviolet.svg)](https://claude.ai/code)
+[![Claude Code](https://img.shields.io/badge/supports-Claude%20Code-blueviolet.svg)](https://claude.ai/code)
+[![Codex](https://img.shields.io/badge/supports-Codex-111827.svg)](docs/codex-guide.md)
 
 An AI-powered product analyst for Claude Code and Codex-assisted analytics workflows. Ask business questions in plain English, get validated analyses, branded charts, and stakeholder-ready slide decks — in minutes, not days.
 
@@ -33,40 +34,40 @@ cd ai-analyst-plus
 pip install -e ".[dev]"
 ```
 
-**2. Connect your data** (optional)
-
-In Claude Code, run `/connect-data` to wire up a warehouse (DuckDB, Postgres,
-BigQuery, Snowflake) or a CSV directory. Curated public datasets with guides live
-in `data/examples/`.
-
-**3. Start Claude Code**
+### Claude Code path
 
 ```bash
 claude
 ```
 
-**4. Ask a question**
-
-```
-What's our conversion rate by device?
-```
-
-Or run the full pipeline:
-
-```
-/run-pipeline question="Why is conversion dropping on mobile?"
-```
-
-### Codex usage note
-
-Codex skills are invoked with natural language or `$skill-name`, not underscore slash commands. For example:
+Then use legacy slash-command workflows, for example:
 
 ```text
-Use $skill-parity-review to port metric-spec to Codex and bring it to parity with the Claude skill.
-Use $metric-spec to define checkout conversion rate.
+/connect-data
+/run-pipeline question="Why is conversion dropping on mobile?"
+/export brief
 ```
 
-See `docs/codex-guide.md` and `.agents/skills/INDEX.md` for current Codex-native workflows.
+### Codex path
+
+Start Codex in this repository and use natural language or `$skill-name` workflows:
+
+```text
+Use $connect-data to add my CSV directory.
+Use $datasets to list connected data sources.
+Use $data-inspect to inspect the active schema.
+Use $run-pipeline question="Why is conversion dropping on mobile?".
+Use $export brief to create a stakeholder decision brief.
+```
+
+Codex skills are not underscore slash commands. See `docs/codex-guide.md` and
+`.agents/skills/INDEX.md` for the current Codex-native workflow list.
+
+### Connect your data
+
+Claude users can run `/connect-data`; Codex users can use `$connect-data`. Supported sources
+include CSV, DuckDB/MotherDuck, PostgreSQL, BigQuery, and Snowflake. Curated public datasets
+with guides live in `data/examples/`.
 
 ---
 
@@ -132,7 +133,8 @@ Charts follow Storytelling with Data methodology: warm off-white background, dec
 
 ## How It Works: The Pipeline
 
-When you run `/run-pipeline`, Claude orchestrates 18 agents across 4 phases:
+When you run `/run-pipeline` in Claude Code or `$run-pipeline` in Codex, the agent orchestrates
+the registry-backed pipeline across 4 phases:
 
 ```
 1. FRAME              2. ANALYZE                          3. STORY                 4. DECK
@@ -170,8 +172,9 @@ Five execution plans let you run just the part you need:
 
 If the pipeline gets interrupted, resume where you left off:
 
-```
-/resume-pipeline
+```text
+/resume-pipeline      # Claude Code
+$resume-pipeline      # Codex
 ```
 
 ---
@@ -209,6 +212,34 @@ If the pipeline gets interrupted, resume where you left off:
 | `/show-off` | Share what you built with the community |
 
 Or just ask in plain English. "Show me conversion by device" works as well as any command.
+
+## Codex Skill Highlights
+
+Codex-native skills live in `.agents/skills/`. Current high-value workflows include:
+
+| Codex skill | Purpose |
+|---|---|
+| `$connect-data`, `$datasets`, `$switch-dataset`, `$data-inspect` | Dataset setup and navigation |
+| `$data-quality-check`, `$metric-spec`, `$reliability`, `$compare`, `$experiment` | Analysis quality, metrics, experiments, stability checks |
+| `$run-pipeline`, `$resume-pipeline`, `$export` | End-to-end workflow, recovery, deliverables |
+| `$presentation-themes`, `$google-doc-export`, `$google-slides-export`, `$notion-export` | Presentation and external export standards |
+| `$independent-review`, `$claude-review` | Blind validation and second opinions |
+| `$skill-parity-review` | Port or audit additional skills |
+
+See `docs/internal/skill-migration-matrix.md` for migration status and known limitations.
+
+## Test Commands
+
+```bash
+pytest
+pytest -m "not slow"
+pytest tests/test_codex_skills.py
+pytest tests/e2e -m "not external"
+```
+
+External integrations such as Google Docs, Google Slides, Notion, live warehouses, and Marp
+PDF/HTML export require separate tool/auth setup and should be tested with explicit external
+markers or manual smoke tests.
 
 ---
 
