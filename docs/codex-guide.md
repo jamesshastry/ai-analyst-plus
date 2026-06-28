@@ -97,14 +97,18 @@ See `.agents/skills/INDEX.md` for the canonical list. The current core set inclu
 - `$run-pipeline`
 - `$resume-pipeline`
 - `$export`
+- `$presentation-themes`
+- `$session-handoff`
+- `$google-doc-export`
+- `$google-slides-export`
+- `$notion-export`
 - `$independent-review`
 - `$claude-review`
 - `$skill-parity-review`
 
 ## Known limitations
 
-Codex migration is in progress. Some legacy Claude workflows do not yet have Codex-native
-counterparts, including several presentation and integration skills. When a Codex skill is missing, use `$skill-parity-review` to port the corresponding
+Codex migration is in progress. Many core analysis, pipeline, presentation, and export workflows now have Codex-native counterparts, while some domain-specific legacy Claude workflows may still be unported. When a Codex skill is missing, use `$skill-parity-review` to port the corresponding
 Claude skill safely instead of copying Claude-specific mechanics.
 
 ## Development checks

@@ -17,6 +17,11 @@ replace, legacy Claude Code skills under `.claude/skills/`.
 | `run-pipeline` | `.agents/skills/run-pipeline/SKILL.md` | The user wants an end-to-end multi-phase analysis workflow, validated narrative, charts, and deck/export artifacts. | `working/runs/{run}/`, `outputs/` |
 | `resume-pipeline` | `.agents/skills/resume-pipeline/SKILL.md` | The user wants to continue, recover, or finish an interrupted pipeline run. | `working/latest/pipeline_state.json`, `working/runs/` |
 | `export` | `.agents/skills/export/SKILL.md` | The user wants to export/share/send analysis results as slides, email, Slack, brief, data, docx, Google Doc, Notion, or receipt. | `outputs/` |
+| `presentation-themes` | `.agents/skills/presentation-themes/SKILL.md` | The user is creating or reviewing stakeholder decks, Marp slides, theme selection, slide components, or speaker notes. | `themes/`, `templates/deck_skeleton.marp.md`, `templates/marp_components.md` |
+| `session-handoff` | `.agents/skills/session-handoff/SKILL.md` | The user wants to save progress, pause, preserve external IDs, or continue later. | `working/session_state.yaml` |
+| `google-doc-export` | `.agents/skills/google-doc-export/SKILL.md` | The user wants a Google Doc export or formatted analysis doc with local docx backup. | `outputs/*.docx`, `outputs/gdoc_export.yaml`, `working/session_state.yaml` |
+| `google-slides-export` | `.agents/skills/google-slides-export/SKILL.md` | The user wants a Google Slides export or shareable online deck. | Google Slides URL/ID, `working/session_state.yaml` |
+| `notion-export` | `.agents/skills/notion-export/SKILL.md` | The user wants a Notion page or Analysis Gallery entry for analysis results. | Notion page URL/ID, `working/session_state.yaml` |
 | `independent-review` | `.agents/skills/independent-review/SKILL.md` | The user wants a provider-neutral blind second-pass validation, second opinion, cross-check, or independent re-derivation. | `working/independent_review/`, `.knowledge/independent-review/log.jsonl` |
 | `claude-review` | `.agents/skills/claude-review/SKILL.md` | Codex produced an analysis and the user wants Claude to independently validate it from a blind brief. | `working/claude_review/`, `.knowledge/claude-review/log.jsonl` |
 | `skill-parity-review` | `.agents/skills/skill-parity-review/SKILL.md` | The user wants to compare a Codex skill with its corresponding Claude skill, audit migration parity, port a Claude skill to Codex, or bring a Codex skill up to parity. | `working/skill_parity_review/` |
@@ -38,6 +43,11 @@ Use $experiment analyze checkout-redesign to analyze an A/B test.
 Use $run-pipeline question="Why did conversion drop?" to run the full workflow.
 Use $resume-pipeline to continue an interrupted run.
 Use $export brief to create a stakeholder decision brief.
+Use $presentation-themes when creating a Marp deck.
+Use $session-handoff after creating an external Doc, Slide deck, or Notion page.
+Use $google-doc-export to create a formatted Google Doc with local backup.
+Use $google-slides-export to create a Google Slides deck when tools are available.
+Use $notion-export to publish analysis to Notion when tools are available.
 Use $skill-parity-review to port another Claude skill to Codex.
 ```
 
