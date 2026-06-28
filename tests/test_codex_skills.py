@@ -215,6 +215,7 @@ NEXT_MEDIUM_PORTS = {
     "analysis-design-spec",
     "archaeology",
     "causal",
+    "data-map",
 }
 
 
@@ -230,6 +231,7 @@ def test_next_medium_ports_preserve_key_contracts():
         "analysis-design-spec": ["Analysis Design Spec", "seven"],
         "archaeology": ["query-archaeology", "Read-only"],
         "causal": ["Mandatory caveats", "counterfactual"],
+        "data-map": ["Join-Rate Matrix", "Relationship Map"],
     }
     for name, phrases in expected_phrases.items():
         text = (SKILLS_DIR / name / "SKILL.md").read_text()
