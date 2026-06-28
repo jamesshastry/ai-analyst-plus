@@ -7,7 +7,7 @@ description: Coach North Star Metric lifecycle work from Codex: explain NSM conc
 
 ## Purpose
 
-Provide a Codex-native wrapper around the repository's North Star Metric playbook, helpers, wiki, and specialist agents while preserving citation discipline, calibration boundaries, and artifact contracts.
+Provide a Codex-native wrapper around the repository's North Star Metric playbook, helpers, wiki, and specialist agents while preserving citation discipline, calibration boundaries, and artifact contracts. Shared deterministic runtime helpers live under `helpers/north_star/`; the current curated wiki corpus remains in `.claude/skills/north-star/wiki/` until it is extracted to a provider-neutral location.
 
 ## When to use
 
@@ -33,11 +33,13 @@ Accept natural language or `$north-star <verb> ...` style requests. Dispatch to:
 
 If no verb is clear, show the current NSM if profile state exists; otherwise present the entry menu.
 
-### Always load core principles
+### Shared corpus and core principles
 
-Read `.claude/skills/north-star/_lib/core_principles.md` or the corresponding shared standard before making framework claims. Honor cite-on-claim, never-fabricate, contested-zone, and boundary-speech rules.
+Read `.claude/skills/north-star/_lib/core_principles.md` or the corresponding shared standard before making framework claims. Treat `.claude/skills/north-star/wiki/` as the current curated NSM corpus and prefer extracting it to a future provider-neutral shared location rather than duplicating wiki content in Codex. Honor cite-on-claim, never-fabricate, contested-zone, and boundary-speech rules.
 
 ### Use deterministic helpers where available
+
+The shared helper package is `helpers/north_star/`.
 
 From repo root, prefer helper CLIs/modules over hand-written logic:
 
@@ -87,6 +89,8 @@ For NSM judgment outputs include:
 - `calibration`
 - `7-checklist`
 - `outputs/north-star`
+- `helpers/north_star/`
+- `.claude/skills/north-star/wiki/`
 
 ## Codex adaptation notes
 
