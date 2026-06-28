@@ -58,6 +58,7 @@ outcomes, not copy-paste prompt parity.
 | `setup-snowflake` | `$setup-snowflake` | Ported | P2 | Final-batch Codex wrapper port; static parity only. |
 | `show-off` | `$show-off` | Ported | P2 | Final-batch Codex wrapper port; static parity only. |
 | `skill-creator` | `$skill-creator` | Ported | P2 | Final-batch Codex wrapper port; static parity only. |
+| `slide-transform` | `$slide-transform` | Ported | P2 | Final remaining Codex wrapper port; static parity only. |
 | `log-correction` | `$log-correction` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `feedback-capture` | `$feedback-capture` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `business` | `$business` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
@@ -79,12 +80,10 @@ outcomes, not copy-paste prompt parity.
 | `history` | `$history` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 | `metrics` | `$metrics` | Ported | P2 | Easy/medium Codex wrapper port; static parity only. |
 
-## Recommended next ports
+## Recommended next steps
 
-1. `$data-quality-check` shared standard extraction
-2. `$run-pipeline` coded dry-run/runtime helper hardening
-3. External integration tests for `$google-doc-export`, `$google-slides-export`, and `$notion-export`
-4. Remaining expert/tool-heavy skills as needed (`setup`, `question-router`, `semantic-validation`, `visualization-patterns`, `north-star`)
+All same-name Claude skills currently have Codex-native wrappers. Recommended follow-up work:
 
-Use `$skill-parity-review` for each port and save review artifacts under
-`working/skill_parity_review/`.
+1. Run `$skill-parity-review` on high-risk external integration skills with live tools/auth.
+2. Extract additional provider-neutral shared standards for large duplicated workflows.
+3. Add integration tests for Google, Notion, Snowflake, eval, and community-posting workflows where credentials are available.
