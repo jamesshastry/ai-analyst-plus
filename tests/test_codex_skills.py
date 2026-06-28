@@ -267,6 +267,7 @@ def test_next_medium_ports_are_in_docs_and_report():
         assert name not in report["missing_codex"]
 
 EXPERT_TOOL_PORT_CONTRACTS = {
+    "north-star": ['North Star Metric', 'refusal', '7-checklist', 'outputs/north-star'],
     "visualization-patterns": ['swd_style', 'gray everything', 'action title'],
     "semantic-validation": ['Semantic Validation Report', 'Simpson', 'Confidence Score', 'BLOCKER'],
     "question-router": ['L1', 'L5', 'North Star', 'narrated'],

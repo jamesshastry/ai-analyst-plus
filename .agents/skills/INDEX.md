@@ -39,6 +39,7 @@ replace, legacy Claude Code skills under `.claude/skills/`.
 | `question-router` | `.agents/skills/question-router/SKILL.md` | An analytical request needs L1-L5 routing, pace choice, or NSM intent dispatch before execution. | L1-L5 route, pace mode, downstream skill choice |
 | `semantic-validation` | `.agents/skills/semantic-validation/SKILL.md` | Analysis findings need structural/logical/business-rule/Simpson validation and confidence grading. | Semantic Validation Report, confidence grade, validation SQL |
 | `visualization-patterns` | `.agents/skills/visualization-patterns/SKILL.md` | Any chart, graph, plot, or visual evidence needs SWD design standards. | `outputs/`, `working/`, chart review checklist |
+| `north-star` | `.agents/skills/north-star/SKILL.md` | The user asks about North Star Metrics, NSM candidates, strategic anchor metrics, inputs, drivers, or lifecycle coaching. | `outputs/north-star/`, `.knowledge/organizations/{org}/business/north-star/profile.yaml` |
 | `log-correction` | `.agents/skills/log-correction/SKILL.md` | User explicitly wants to log/save/record a correction or mistake. | `.knowledge/corrections/log.yaml`, `.knowledge/corrections/index.yaml` |
 | `feedback-capture` | `.agents/skills/feedback-capture/SKILL.md` | User corrects an answer, teaches a reusable preference, or asks to remember feedback. | `.knowledge/corrections/`, `.knowledge/learnings/index.md` |
 | `business` | `.agents/skills/business/SKILL.md` | User wants documented business context: glossary, products, metrics, objectives, teams, or term lookup. | `.knowledge/organizations/` |
@@ -97,6 +98,7 @@ Use $setup to onboard or check setup status.
 Use $question-router to classify an analytical question before execution.
 Use $semantic-validation to validate findings and assign confidence.
 Use $visualization-patterns whenever creating or reviewing charts.
+Use $north-star to explain, triage, audit, or work on an NSM.
 Use $log-correction to record a mistake and fix.
 Use $feedback-capture when the user gives a correction or reusable preference.
 Use $business to browse organization context.
