@@ -213,6 +213,7 @@ def test_migration_report_reflects_easy_medium_batch():
 NEXT_MEDIUM_PORTS = {
     "analysis-design",
     "analysis-design-spec",
+    "archaeology",
 }
 
 
@@ -226,6 +227,7 @@ def test_next_medium_ports_preserve_key_contracts():
     expected_phrases = {
         "analysis-design": ["Analysis Design Brief", "Confound Scanner"],
         "analysis-design-spec": ["Analysis Design Spec", "seven"],
+        "archaeology": ["query-archaeology", "Read-only"],
     }
     for name, phrases in expected_phrases.items():
         text = (SKILLS_DIR / name / "SKILL.md").read_text()
