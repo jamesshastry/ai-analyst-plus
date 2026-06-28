@@ -68,8 +68,11 @@ def test_core_codex_migrated_skills_exist():
         "datasets",
         "switch-dataset",
         "data-inspect",
+        "data-quality-check",
         "metric-spec",
         "reliability",
+        "compare",
+        "experiment",
         "independent-review",
         "claude-review",
         "skill-parity-review",
@@ -85,3 +88,15 @@ def test_codex_skill_index_lists_all_skills():
         name = path.parent.name
         assert f"`{name}`" in index, f"INDEX.md missing {name}"
         assert str(path) in index, f"INDEX.md missing path for {name}"
+
+
+def test_migration_matrix_lists_all_codex_skills():
+    matrix = Path("docs/internal/skill-migration-matrix.md").read_text()
+    for path in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+        name = path.parent.name
+        if name == "skill-parity-review":
+            # Migration utility is listed, but keep the assertion explicit below.
+            pass
+        assert f"`{name}`" in matrix or f"${name}" in matrix, (
+            f"Migration matrix missing {name}"
+        )
