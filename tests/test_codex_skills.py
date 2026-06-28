@@ -218,6 +218,7 @@ NEXT_MEDIUM_PORTS = {
     "data-map",
     "experiment-brief",
     "explore",
+    "stress-test",
 }
 
 
@@ -236,6 +237,7 @@ def test_next_medium_ports_preserve_key_contracts():
         "data-map": ["Join-Rate Matrix", "Relationship Map"],
         "experiment-brief": ["North Star Metric", "Guardrail Metrics"],
         "explore": ["Question Router", "working/explore_notes"],
+        "stress-test": ["Stress Test Scorecard", "Kill criteria"],
     }
     for name, phrases in expected_phrases.items():
         text = (SKILLS_DIR / name / "SKILL.md").read_text()
