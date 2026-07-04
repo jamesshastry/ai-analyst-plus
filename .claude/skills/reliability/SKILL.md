@@ -23,8 +23,12 @@ be genuinely independent: each gets a fresh context and sees ONLY the question, 
 other runs' answers. Give each sub-agent exactly this brief:
 
 > You are answering one analytics question against the active dataset. Load the normal
-> session context first (knowledge-bootstrap: read `.knowledge/active.yaml`, the active
-> dataset's `schema.md`, `quirks.md`, and the metric dictionary `metrics/index.yaml`). If
+> session context first (knowledge-bootstrap: read `.knowledge/active.yaml`, then the active
+> dataset's `schema.md`, `quirks.md`, and manifest from the local datasets dir). For the
+> metric dictionary and semantic context, first resolve the context dir with
+> `from helpers.context_sync import resolve_context_dir` (`helpers/context_sync.py`) and
+> read `metrics/index.yaml` and `semantic/` from the RESOLVED dir, not from the local copy.
+> Do not read `.knowledge/reliability/` history before answering. If
 > the metric you're asked about is defined in the dictionary, use that definition exactly.
 > If it is not, decide for yourself how best to define and measure it. Query the real data
 > with the repo connection (`from helpers.connection_manager import ConnectionManager`).
