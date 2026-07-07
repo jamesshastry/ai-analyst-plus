@@ -94,7 +94,10 @@ def _load_definitions(context_dir: Union[str, Path]) -> List[Tuple[str, DateLike
     """Return (name, last_verified) for every definition that carries a freshness date.
 
     Reads the metric dictionary (metrics/index.yaml) and the verified queries
-    (semantic/verified_queries.yaml) - the definitions most likely to rot, wired first.
+    (verified_queries.yaml) - the definitions most likely to rot, wired first.
+    verified_queries.yaml can live at the dataset root (reconciled stores) OR under
+    semantic/ (older stores); the root is checked first, then semantic/ as a fallback,
+    so both store layouts resolve.
     A definition with no last_verified field is still returned, with last_verified None,
     so it surfaces as 'missing' in the report rather than silently dropping out.
     """
@@ -109,7 +112,10 @@ def _load_definitions(context_dir: Union[str, Path]) -> List[Tuple[str, DateLike
         for m in data.get("metrics", []):
             defs.append((m.get("metric"), m.get("last_verified")))
 
-    vq_path = context_dir / "semantic" / "verified_queries.yaml"
+    # verified_queries.yaml: root-first (reconciled flat layout), then semantic/ (legacy nested).
+    vq_path = context_dir / "verified_queries.yaml"
+    if not vq_path.exists():
+        vq_path = context_dir / "semantic" / "verified_queries.yaml"
     if vq_path.exists():
         data = yaml.safe_load(vq_path.read_text()) or {}
         for q in data.get("verified_queries", []):

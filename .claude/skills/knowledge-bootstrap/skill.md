@@ -44,23 +44,41 @@ Read `.knowledge/active.yaml`.
 | `schema.md` | Yes | Generate via `schema_to_markdown()` or profiling |
 | `quirks.md` | No | Create empty template |
 | `metrics/index.yaml` | No | Count as 0 |
+| `custom_instructions.md` (root) **else** `semantic/custom_instructions.md` | No | Skip |
+| `verified_queries.yaml` (root) **else** `semantic/verified_queries.yaml` | No | Skip |
+| `corrections.md` (root) | No | Skip |
 | `semantic/entities.yaml` | No | Note "no semantic layer" |
 | `semantic/relationships.yaml` | No | Skip |
-| `semantic/custom_instructions.md` | No | Skip |
 | `semantic/dimensions.yaml` | No | Skip |
 | `semantic/measures.yaml` | No | Skip |
 | `semantic/filters.yaml` | No | Skip |
-| `semantic/verified_queries.yaml` | No | Skip |
+
+**Store layout — root or `semantic/` (backward-compatible).** Three of these files can live at EITHER
+the dataset root (`{ctx_dir}/`) OR under `semantic/` (`{ctx_dir}/semantic/`), depending on the store's
+layout: `custom_instructions.md`, `verified_queries.yaml`, and `corrections.md`. Reconciled stores keep
+them at the dataset root; older stores keep the first two under `semantic/`. For each of the three,
+**check the dataset root first; if present, load it from there, ELSE fall back to `semantic/`.** Do not
+require one layout over the other, and do not skip the file just because it is absent from `semantic/` —
+it may be at the root, and vice versa. The five pure-semantic YAMLs (`entities`, `relationships`,
+`dimensions`, `measures`, `filters`) always live under `semantic/` and are not root-or-semantic.
+
+`corrections.md` is the store-level **communal corrections home** — a human-curated, cross-session list
+of standing corrections that ship WITH the dataset context (root-or-nothing; there is no `semantic/`
+fallback for it). It is DISTINCT from the per-session correction log at `.knowledge/corrections/index.yaml`
+loaded in Step 6 — that one is the local session log, this one is the communal store file. Load both;
+they are different subsystems.
 
 **Semantic layer (load before writing any SQL).** The `semantic/` files are the agent's map of the data,
 and the metric definitions are defined by MEANING, not by a stored number. Always load `entities.yaml`
 (authoritative source table + keys + grain + caveats per concept), `relationships.yaml` (verified joins +
-cardinality), and `custom_instructions.md` (cross-cutting business rules and gotchas), they are small and
-always relevant. Consult `dimensions.yaml` (synonyms + real sample values), `measures.yaml`, `filters.yaml`
-(named filters), and `verified_queries.yaml` (blessed question -> SQL exemplars) when writing a query.
+cardinality), and `custom_instructions.md` (cross-cutting business rules and gotchas — resolved root-first
+then `semantic/` per the layout rule above), they are small and always relevant. Consult `dimensions.yaml`
+(synonyms + real sample values), `measures.yaml`, `filters.yaml` (named filters), and `verified_queries.yaml`
+(blessed question -> SQL exemplars, likewise root-first then `semantic/`) when writing a query.
 Before writing SQL: resolve the question's metric against `metrics/index.yaml`, pick the authoritative
 table(s) and join(s) from `entities`/`relationships`, use real `sample_values` for filter literals (never
-invent them), reuse a named filter or a verified query when one matches, and apply the custom instructions.
+invent them), reuse a named filter or a verified query when one matches, and apply the custom instructions
+and any standing corrections from `corrections.md`.
 
 **Schema generation if `schema.md` is missing (REQUIRED):**
 
