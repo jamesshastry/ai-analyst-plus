@@ -432,6 +432,23 @@ Google upload.
 
 These are non-negotiable. They protect analytical quality.
 
+0. **Consult the context store before writing ANY SQL — even for L1 lookups.**
+   Before composing a query, load the active dataset's context (resolve via
+   `.knowledge/context-source.yaml` → local or git cache). Check, in order:
+   (a) `metrics/index.yaml` — resolve the question's metric to its definition,
+   grain, numerator/denominator, and `rejected` patterns;
+   (b) `verified_queries.yaml` — reuse or adapt a blessed SQL exemplar when one
+   matches the question pattern;
+   (c) `semantic/entities.yaml` + `relationships.yaml` — pick the authoritative
+   table, join path, and heed caveats (e.g. status filters, fan-out warnings);
+   (d) `semantic/measures.yaml` + `filters.yaml` — use the canonical expression
+   and named filters;
+   (e) `corrections.md` + `.knowledge/corrections/index.yaml` — apply standing
+   and session-level corrections.
+   This rule is the SQL quality gate. Skipping it and writing SQL from scratch
+   is the single most common source of definition drift. The store is small —
+   reading it takes seconds; fixing a wrong answer takes minutes.
+
 1. **Always validate SQL before presenting results.** Run a sanity check: do
    row counts match? Do percentages sum correctly? Are joins producing expected
    row counts?
