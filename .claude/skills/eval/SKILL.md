@@ -54,7 +54,7 @@ reasonable batches). Each sub-agent gets a fresh context and sees ONLY its quest
 > context first (knowledge-bootstrap: `.knowledge/active.yaml`, then the active dataset's `schema.md`,
 > `quirks.md`, and manifest from the local datasets dir). For the metric dictionary and semantic
 > context, first resolve the context dir with `from helpers.context_sync import resolve_context_dir`
-> (`helpers/context_sync.py`) and read `metrics/index.yaml` and `semantic/` from the RESOLVED dir, not
+> (`helpers/context_sync.py`) and read `metrics/index.yaml`, `semantic/`, and the verified queries (`verified_queries.yaml`, at the dataset root or under `semantic/` in older layouts) from the RESOLVED dir, not
 > from the local copy. Do not read `.knowledge/reliability/` history before answering. If the metric
 > you're asked about is defined in the dictionary, use that definition exactly. If it is NOT defined,
 > decide for yourself how best to define and measure it. Query the real warehouse with the repo connection
