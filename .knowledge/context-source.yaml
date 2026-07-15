@@ -1,15 +1,9 @@
-# Where this analyst reads its CONTEXT from.
+# Day 3 (Cohort 4). Context is LOCAL: it lives in this repo, in
+# .knowledge/datasets/novamart/. You own it and you will edit it today.
 #
-# source: local  -> context lives in the tool, .knowledge/datasets/{active}/ (the C0-C2 individual setup).
-# source: git    -> point at a communal context repo the team curates via PRs (the C3 team setup):
-#                   knowledge-bootstrap clones/pulls it to a cache and loads the semantic layer from there
-#                   instead of the local copy. Same loader, external source.
-#
-# Only the CONTEXT lives here (semantic layer + metric defs). The gold/answer-key never does (it stays
-# hidden with the eval harness, or the agent reads the answers and cheats).
+# It ships WITHOUT a definition for `retention`. That is deliberate.
+# Do not switch this to `git` today -- the shared team repo already has retention
+# defined, and you would skip the exercise.
 
-source: git                                          # local | git
-repo: https://github.com/ai-analyst-lab/novamart-context.git   # a local path or a GitHub URL (e.g. git@github.com:org/novamart-context.git)
-ref: main                                            # branch or a pinned commit SHA
-dataset_path: datasets/novamart                      # where this dataset's semantic/ + metrics/ live in the repo
-cache: .knowledge/.context-cache                     # where the bootstrap syncs the repo to (gitignored)
+source: local
+dataset_path: .knowledge/datasets/novamart

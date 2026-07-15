@@ -103,6 +103,15 @@ yarn-error.log*
 .knowledge/user/
 .knowledge/datasets/*/
 
+# Agentic Analytics 101 teaching dataset: novamart ships with the repo (metrics, schema,
+# semantic YAML). Data files stay ignored, they are copied in from the starter, never committed.
+!.knowledge/datasets/novamart/
+.knowledge/datasets/novamart/**/*.duckdb
+.knowledge/datasets/novamart/**/*.db
+.knowledge/datasets/novamart/**/*.sqlite
+.knowledge/datasets/novamart/**/*.parquet
+!.knowledge/active.yaml
+
 # Analyses archive (all user-generated)
 .knowledge/analyses/*
 !.knowledge/analyses/_schema.yaml
